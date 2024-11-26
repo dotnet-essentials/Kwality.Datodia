@@ -25,3 +25,7 @@
 
 # JetBrains Rider ".idea/" folder.
 /app/.idea/
+
+# Output folders.
+/app/**/bin/
+/app/**/obj/
