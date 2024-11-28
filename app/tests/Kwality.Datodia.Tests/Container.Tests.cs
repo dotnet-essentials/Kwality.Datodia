@@ -22,40 +22,23 @@
 // ==                FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // ==                OTHER DEALINGS IN THE SOFTWARE.
 // =====================================================================================================================
-namespace Kwality.Datodia;
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member - Reason: NOT Public.
+namespace Kwality.Datodia.Tests;
 
-using Kwality.Datodia.Exceptions;
+using Xunit;
 
-/// <summary>
-///     Container used to create objects.
-/// </summary>
-public sealed class Container
+public sealed partial class ContainerTests
 {
-    private readonly Dictionary<Type, Func<object>> typeBuilders = new()
+    [Fact(DisplayName = "A custom factory can be registered to resolve types.")]
+    internal void RegisteringACustomFactory()
     {
-        { typeof(string), () => Guid.NewGuid().ToString() },
-    };
+        // ARRANGE.
+        var container = new Container();
 
-    /// <summary>
-    ///     Create an instance of T.
-    /// </summary>
-    /// <typeparam name="T">The type to create.</typeparam>
-    /// <returns>An instance of T.</returns>
-    /// <exception cref="DatodiaException">An instance of T couldn't be created.</exception>
-    public T Create<T>()
-    {
-        if (this.typeBuilders.TryGetValue(typeof(T), out var builder)) return (T)builder();
+        // ACT.
+        container.Register<string>(() => "Hello, World!");
 
-        throw new DatodiaException($"No resolver registered for type '{typeof(T)}'.");
-    }
-
-    /// <summary>
-    ///     Register a custom builder that replaces the built-in builder for T.
-    /// </summary>
-    /// <param name="builder">The builder used to create instances of T.</param>
-    /// <typeparam name="T">The type the builder can create.</typeparam>
-    public void Register<T>(Func<object> builder)
-    {
-        this.typeBuilders[typeof(T)] = builder;
+        // ASSERT.
+        Assert.Equal("Hello, World!", container.Create<string>());
     }
 }
