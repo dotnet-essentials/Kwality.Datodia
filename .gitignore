@@ -29,3 +29,4 @@
 # Output folders.
 /app/**/bin/
 /app/**/obj/
+/app/**/BenchmarkDotNet.Artifacts/
