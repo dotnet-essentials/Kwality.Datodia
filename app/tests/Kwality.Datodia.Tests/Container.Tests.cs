@@ -41,4 +41,33 @@ public sealed partial class ContainerTests
         // ASSERT.
         Assert.Equal("Hello, World!", container.Create<string>());
     }
+
+    [Fact(DisplayName = "The `CreateMany` function returns 3 elements by default.")]
+    internal void CreateManyReturns3InstancesByDefault()
+    {
+        // ARRANGE.
+        var container = new Container();
+
+        // ACT.
+        var result = container.CreateMany<string>();
+
+        // ASSERT.
+        Assert.Equal(3, result.Count());
+    }
+
+    [Fact(DisplayName = "The `CreateMany` function can return any given number of elements.")]
+    internal void CreateManyWithCustomCountReturnsTheRequestedNumberOfInstances()
+    {
+        // ARRANGE.
+        var container = new Container
+        {
+            RepeatCount = 10,
+        };
+
+        // ACT.
+        var result = container.CreateMany<string>();
+
+        // ASSERT.
+        Assert.Equal(10, result.Count());
+    }
 }
