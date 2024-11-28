@@ -29,8 +29,8 @@ using Xunit;
 
 public sealed partial class ContainerTests
 {
-    [Fact(DisplayName = "Creating a 'string' returns a unique GUID as a 'string'.")]
-    internal void CreateStringReturnsUniqueGuidsAsString()
+    [Fact(DisplayName = "'Create<T>': When 'T' is a 'string' a unique GUID (as a 'string') is returned.")]
+    internal void Create_string_returns_a_unique_guid()
     {
         // ARRANGE.
         var container = new Container();

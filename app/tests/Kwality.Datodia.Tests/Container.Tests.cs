@@ -29,8 +29,8 @@ using Xunit;
 
 public sealed partial class ContainerTests
 {
-    [Fact(DisplayName = "A custom factory can be registered to resolve types.")]
-    internal void RegisteringACustomFactory()
+    [Fact(DisplayName = "'Register<T>': A custom factory is registered for 'T'.")]
+    internal void Register_custom_factory_uses_the_custom_factory()
     {
         // ARRANGE.
         var container = new Container();
@@ -42,8 +42,8 @@ public sealed partial class ContainerTests
         Assert.Equal("Hello, World!", container.Create<string>());
     }
 
-    [Fact(DisplayName = "The `CreateMany` function returns 3 elements by default.")]
-    internal void CreateManyReturns3InstancesByDefault()
+    [Fact(DisplayName = "'CreateMany<T>': Returns 3 elements by default.")]
+    internal void Create_multiple_returns_3_elements_by_default()
     {
         // ARRANGE.
         var container = new Container();
@@ -55,8 +55,8 @@ public sealed partial class ContainerTests
         Assert.Equal(3, result.Count());
     }
 
-    [Fact(DisplayName = "The `CreateMany` function can return any given number of elements.")]
-    internal void CreateManyWithCustomCountReturnsTheRequestedNumberOfInstances()
+    [Fact(DisplayName = "'CreateMany<T>': Returns predefined amount of elements.")]
+    internal void Create_multiple_returns_predefined_amount_of_elements()
     {
         // ARRANGE.
         var container = new Container
