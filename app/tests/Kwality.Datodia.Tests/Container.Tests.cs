@@ -29,6 +29,17 @@ using Xunit;
 
 public sealed partial class ContainerTests
 {
+    [Fact(DisplayName = "'Instance': Returns the same instance each time it is accessed.")]
+    internal void Instance_returns_the_same_instance_each_time()
+    {
+        // ACT.
+        var instance1 = Container.Instance;
+        var instance2 = Container.Instance;
+
+        // ASSERT.
+        Assert.Equal(instance1, instance2);
+    }
+    
     [Fact(DisplayName = "'Register<T>': A custom factory is registered for 'T'.")]
     internal void Register_custom_factory_uses_the_custom_factory()
     {

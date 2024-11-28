@@ -31,10 +31,17 @@ using Kwality.Datodia.Exceptions;
 /// </summary>
 public sealed class Container
 {
+    private static readonly Lazy<Container> instance = new(() => new());
+
     private readonly Dictionary<Type, Func<object>> typeBuilders = new()
     {
         { typeof(string), () => Guid.NewGuid().ToString() },
     };
+
+    /// <summary>
+    ///     Returns the Container instance used to create objects.
+    /// </summary>
+    public static Container Instance => instance.Value;
 
     /// <summary>
     ///     The total number of elements to create when using <see cref="CreateMany{T}" />.
