@@ -22,4 +22,31 @@
 // ==                FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // ==                OTHER DEALINGS IN THE SOFTWARE.
 // =====================================================================================================================
-[assembly: CLSCompliant(false)]
+namespace Kwality.Datodia.Tests.Verifiers.Abstractions;
+
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+
+internal abstract class RoslynComponentVerifier
+{
+    public string[]? InputSources
+    {
+        get;
+        init;
+    }
+
+    protected Compilation CreateCompilation()
+    {
+        var trustedPlatformAssemblies =
+            AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")?.ToString()?.Split(Path.PathSeparator) ?? [];
+
+        var references = trustedPlatformAssemblies.Select(p => MetadataReference.CreateFromFile(p)).ToList();
+
+        // references.Add(MetadataReference
+        //                   .CreateFromFile("/home/kevin-de-coninck/Development/github.com/kdeconinck/Kwality.Datodia/app/src/Kwality.Datodia/bin/Debug/netstandard2.0/Kwality.Datodia.dll"));
+
+        return CSharpCompilation.Create("Kwality.Datodia",
+                                        (this.InputSources ?? []).Select(x => CSharpSyntaxTree.ParseText(x)),
+                                        references, new(OutputKind.DynamicallyLinkedLibrary));
+    }
+}

@@ -23,25 +23,52 @@
 // ==                OTHER DEALINGS IN THE SOFTWARE.
 // =====================================================================================================================
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member - Reason: NOT Public.
-namespace Kwality.Datodia.Tests;
+namespace Kwality.Datodia.Usage.Tests;
 
 using Xunit;
 
 public sealed partial class ContainerTests
 {
-    [Fact(DisplayName = "'Create<T>': When 'T' is a 'string' a unique GUID (as a 'string') is returned.")]
-    internal void Create_string_returns_a_unique_guid()
+    [Fact(DisplayName = "'Register<T>': A custom factory is registered for 'T'.")]
+    internal void Register_custom_factory_uses_the_custom_factory()
     {
         // ARRANGE.
         var container = new Container();
 
         // ACT.
-        var r1 = container.Create<string>();
-        var r2 = container.Create<string>();
+        container.Register<string>(() => "Hello, World!");
 
         // ASSERT.
-        Assert.True(Guid.TryParse(r1, out _));
-        Assert.True(Guid.TryParse(r2, out _));
-        Assert.NotEqual(r1, r2);
+        Assert.Equal("Hello, World!", container.Create<string>());
+    }
+
+    [Fact(DisplayName = "'CreateMany<T>': Returns 3 elements by default.")]
+    internal void Create_multiple_returns_3_elements_by_default()
+    {
+        // ARRANGE.
+        var container = new Container();
+
+        // ACT.
+        var result = container.CreateMany<string>();
+
+        // ASSERT.
+        Assert.Equal(3, result.Count());
+    }
+
+    [Fact(DisplayName = "'CreateMany<T>': Returns predefined amount of elements.")]
+    internal void Create_multiple_returns_predefined_amount_of_elements()
+    {
+        // ARRANGE.
+        var container = new Container
+        {
+            RepeatCount = 10,
+        };
+
+        // ACT.
+        var result = container.CreateMany<string>();
+
+        // ASSERT.
+        Assert.Equal(10, result.Count());
     }
 }
+

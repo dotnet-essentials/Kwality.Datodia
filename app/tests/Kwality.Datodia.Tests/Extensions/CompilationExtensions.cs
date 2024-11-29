@@ -22,4 +22,22 @@
 // ==                FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // ==                OTHER DEALINGS IN THE SOFTWARE.
 // =====================================================================================================================
-[assembly: CLSCompliant(false)]
+namespace Kwality.Datodia.Tests.Extensions;
+
+using Microsoft.CodeAnalysis;
+
+using Xunit;
+
+internal static class CompilationExtensions
+{
+    public static void FailIfCompilationErrors(this Compilation compilation)
+    {
+        var diagnostics = compilation.GetDiagnostics();
+        var errorDiagnostics = diagnostics.Where(diagnostic => diagnostic.IsError()).ToArray();
+
+        if (errorDiagnostics.Length != 0)
+        {
+            Assert.Fail($"Found compilation errors in the given input source.\n  - {errorDiagnostics.First()}");
+        }
+    }
+}

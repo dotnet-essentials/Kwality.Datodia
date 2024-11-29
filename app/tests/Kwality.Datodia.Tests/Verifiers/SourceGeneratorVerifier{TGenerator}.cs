@@ -22,4 +22,41 @@
 // ==                FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // ==                OTHER DEALINGS IN THE SOFTWARE.
 // =====================================================================================================================
-[assembly: CLSCompliant(false)]
+namespace Kwality.Datodia.Tests.Verifiers;
+
+using Kwality.Datodia.Tests.Extensions;
+using Kwality.Datodia.Tests.Verifiers.Abstractions;
+
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+
+using Xunit;
+
+internal sealed class SourceGeneratorVerifier<TGenerator> : RoslynComponentVerifier
+    where TGenerator : IIncrementalGenerator, new()
+{
+    public string[]? ExpectedGeneratedSources{ get; init; }
+
+    public void Verify()
+    {
+        // Arrange.
+        var compilation = CreateCompilation();
+        var generator = new TGenerator();
+
+        // Act.
+        _ = CSharpGeneratorDriver.Create(generator)
+                                 .RunGeneratorsAndUpdateCompilation(compilation, out var result, out var diagnostics);
+
+        // Assert.
+        result.FailIfCompilationErrors();
+        Assert.Empty(diagnostics);
+
+        Assert.Equal((this.ExpectedGeneratedSources ?? []).Length,
+                     result.SyntaxTrees.Count() - compilation.SyntaxTrees.Count());
+
+        foreach (var generatedSource in this.ExpectedGeneratedSources ?? [])
+        {
+            Assert.Contains(result.SyntaxTrees, x => x.ToString() == generatedSource);
+        }
+    }
+}

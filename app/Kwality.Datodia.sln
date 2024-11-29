@@ -15,6 +15,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "900. Benchmarks.", "900. Be
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kwality.Datodia.Benchmarks", "bench\Kwality.Datodia.Benchmarks\Kwality.Datodia.Benchmarks.csproj", "{07243168-CADC-4563-8A24-442279F6691F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kwality.Datodia.Usage.Tests", "tests\Kwality.Datodia.Usage.Tests\Kwality.Datodia.Usage.Tests.csproj", "{9A7D44DF-F9D6-41FF-9EBB-D61C65AFC5BC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "300. Tests (Usage).", "300. Tests (Usage).", "{F52474E6-D801-4D77-8327-8B00C843F981}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kwality.Datodia.Roslyn", "src\Kwality.Datodia.Roslyn\Kwality.Datodia.Roslyn.csproj", "{44888F45-5058-42A3-BEE1-21DCB90C1D3E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +33,8 @@ Global
 		{AAC9635E-BD00-43B6-AB0B-6C7F239D7D70} = {2519D71B-63EF-49A5-8AEF-0B2468AC9B40}
 		{B6B1BC12-A57A-49BC-9170-3B41083885AC} = {7724C1BA-29CE-4FC1-A7E8-B771DAB19845}
 		{07243168-CADC-4563-8A24-442279F6691F} = {662ED36A-CE03-49DD-812D-D45B24F51382}
+		{9A7D44DF-F9D6-41FF-9EBB-D61C65AFC5BC} = {F52474E6-D801-4D77-8327-8B00C843F981}
+		{44888F45-5058-42A3-BEE1-21DCB90C1D3E} = {2519D71B-63EF-49A5-8AEF-0B2468AC9B40}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{AAC9635E-BD00-43B6-AB0B-6C7F239D7D70}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -41,5 +49,13 @@ Global
 		{07243168-CADC-4563-8A24-442279F6691F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{07243168-CADC-4563-8A24-442279F6691F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{07243168-CADC-4563-8A24-442279F6691F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9A7D44DF-F9D6-41FF-9EBB-D61C65AFC5BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A7D44DF-F9D6-41FF-9EBB-D61C65AFC5BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A7D44DF-F9D6-41FF-9EBB-D61C65AFC5BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A7D44DF-F9D6-41FF-9EBB-D61C65AFC5BC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{44888F45-5058-42A3-BEE1-21DCB90C1D3E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{44888F45-5058-42A3-BEE1-21DCB90C1D3E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{44888F45-5058-42A3-BEE1-21DCB90C1D3E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{44888F45-5058-42A3-BEE1-21DCB90C1D3E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

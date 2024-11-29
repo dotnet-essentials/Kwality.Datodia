@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
-    <AnalysisLevel>8.0</AnalysisLevel>
+    <AnalysisLevel>9.0</AnalysisLevel>
     <AnalysisMode>All</AnalysisMode>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Kwality.Datodia\Kwality.Datodia.csproj" />
+    <ProjectReference Include="..\..\src\Kwality.Datodia.Roslyn\Kwality.Datodia.Roslyn.csproj" />
   </ItemGroup>
 
 </Project>

@@ -22,4 +22,14 @@
 // ==                FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // ==                OTHER DEALINGS IN THE SOFTWARE.
 // =====================================================================================================================
-[assembly: CLSCompliant(false)]
+namespace Kwality.Datodia.Tests.Extensions;
+
+using Microsoft.CodeAnalysis;
+
+internal static class DiagnosticExtensions
+{
+    public static bool IsError(this Diagnostic diagnostic)
+    {
+        return diagnostic.Severity == DiagnosticSeverity.Error;
+    }
+}
