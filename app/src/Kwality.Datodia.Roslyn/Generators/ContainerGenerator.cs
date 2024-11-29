@@ -52,7 +52,8 @@ public sealed class ContainerGenerator : IIncrementalGenerator
                                            /// </summary>
                                            public sealed class Container
                                            {
-                                               [[#[[TYPE_BUILDERS]]#]]
+                                           [[#[[TYPE_BUILDERS_INSTANCES]]#]]
+                                           [[#[[TYPE_BUILDERS_MAP]]#]]
                                                /// <summary>
                                                ///     The total number of elements to create when using <see cref="CreateMany{T}" />.
                                                /// </summary>
@@ -95,6 +96,12 @@ public sealed class ContainerGenerator : IIncrementalGenerator
                                            }
                                            """;
 
+    private readonly TypeBuilderDefinition[] typeBuilders =
+    [
+        new("string", "Kwality.Datodia.Builders.StringTypeBuilder"),
+        new("System.Guid", "Kwality.Datodia.Builders.GuidTypeBuilder"),
+    ];
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var typeBuilders = context.SyntaxProvider
@@ -122,45 +129,66 @@ public sealed class ContainerGenerator : IIncrementalGenerator
         void GenerateContainerSource(SourceProductionContext ctx,
             ImmutableArray<TypeBuilderDefinition?> typeBuilderDefinitions)
         {
-            var sBuilder = new StringBuilder();
-            _ = sBuilder.AppendLine("private readonly Dictionary<Type, Func<object>> typeBuilders = new()");
-            _ = sBuilder.AppendLine("    {");
-            _ = sBuilder.AppendLine(CreateDefaultTypeBuilderMapEntry("string", "StringTypeBuilder"));
-            _ = sBuilder.AppendLine(CreateDefaultTypeBuilderMapEntry("System.Guid", "GuidTypeBuilder"));
+            var allTypeBuilders = this.typeBuilders.Concat(typeBuilderDefinitions).ToImmutableArray();
+            var typeBuildersInstance = CreateTypeBuilderInstances(allTypeBuilders);
+            var typeBuilderMap = CreateTypeBuilderMap(allTypeBuilders);
 
-            foreach (var definition in Enumerable.OfType<TypeBuilderDefinition>(typeBuilderDefinitions))
-            {
-                _ = sBuilder.AppendLine(definition.FormatAsTypeBuilderMapEntry());
-            }
+            var generatedContainerSource = containerSource
+                                          .Replace("[[#[[TYPE_BUILDERS_INSTANCES]]#]]", typeBuildersInstance)
+                                          .Replace("[[#[[TYPE_BUILDERS_MAP]]#]]", typeBuilderMap);
 
-            _ = sBuilder.AppendLine("    };");
-            var generatedContainerSource = containerSource.Replace("[[#[[TYPE_BUILDERS]]#]]", sBuilder.ToString());
             ctx.AddSource("Container.g.cs", SourceText.From(generatedContainerSource, Encoding.UTF8));
         }
     }
 
-    private static string CreateDefaultTypeBuilderMapEntry(string typeName, string builderName)
+    private static string CreateTypeBuilderInstances(ImmutableArray<TypeBuilderDefinition?> typeBuilderDefinitions)
     {
-        const string @namespace = "Kwality.Datodia.Builders";
+        var sBuilder = new StringBuilder();
 
-        return $"        {{ typeof({typeName}), new {@namespace}.{builderName}().Create }},";
+        foreach (var definition in Enumerable.OfType<TypeBuilderDefinition>(typeBuilderDefinitions))
+        {
+            _ = sBuilder.AppendLine(definition.FormatAsInstance());
+        }
+
+        return sBuilder.ToString();
     }
 
-    private sealed record TypeBuilderDefinition(string Type, string Implementation)
+    private static string CreateTypeBuilderMap(ImmutableArray<TypeBuilderDefinition?> typeBuilderDefinitions)
+    {
+        var sBuilder = new StringBuilder();
+        _ = sBuilder.AppendLine("    private readonly Dictionary<Type, Func<object>> typeBuilders = new()");
+        _ = sBuilder.AppendLine("    {");
+
+        foreach (var definition in Enumerable.OfType<TypeBuilderDefinition>(typeBuilderDefinitions))
+        {
+            _ = sBuilder.AppendLine(definition.FormatAsMapEntry());
+        }
+
+        _ = sBuilder.AppendLine("    };");
+
+        return sBuilder.ToString();
+    }
+
+    private sealed record TypeBuilderDefinition(string Type, string FullName)
     {
         public string Type
         {
             get;
         } = Type;
 
-        public string Implementation
+        public string FullName
         {
             get;
-        } = Implementation;
+        } = FullName;
 
-        public string FormatAsTypeBuilderMapEntry()
+        public string FormatAsInstance()
         {
-            return $"        {{ typeof({this.Type}), new {this.Implementation}().Create }},";
+            return $"    private static readonly {this.FullName} {this.FullName.Replace(".", "_")}_Instance = new {this.FullName}();";
+        }
+
+        public string FormatAsMapEntry()
+        {
+            return $"        {{ typeof({this.Type}), {this.FullName.Replace(".", "_")}_Instance.Create }},";
         }
     }
 }

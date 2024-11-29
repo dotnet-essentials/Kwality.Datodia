@@ -54,10 +54,13 @@ public sealed class ContainerGeneratorTests
                 /// </summary>
                 public sealed class Container
                 {
+                    private static readonly Kwality.Datodia.Builders.StringTypeBuilder Kwality_Datodia_Builders_StringTypeBuilder_Instance = new Kwality.Datodia.Builders.StringTypeBuilder();
+                    private static readonly Kwality.Datodia.Builders.GuidTypeBuilder Kwality_Datodia_Builders_GuidTypeBuilder_Instance = new Kwality.Datodia.Builders.GuidTypeBuilder();
+                
                     private readonly Dictionary<Type, Func<object>> typeBuilders = new()
                     {
-                        { typeof(string), new Kwality.Datodia.Builders.StringTypeBuilder().Create },
-                        { typeof(System.Guid), new Kwality.Datodia.Builders.GuidTypeBuilder().Create },
+                        { typeof(string), Kwality_Datodia_Builders_StringTypeBuilder_Instance.Create },
+                        { typeof(System.Guid), Kwality_Datodia_Builders_GuidTypeBuilder_Instance.Create },
                     };
                 
                     /// <summary>
