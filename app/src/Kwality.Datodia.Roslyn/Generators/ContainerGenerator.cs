@@ -96,10 +96,11 @@ public sealed class ContainerGenerator : IIncrementalGenerator
                                            }
                                            """;
 
-    private readonly TypeBuilderDefinition[] typeBuilders =
+    private readonly TypeBuilderDefinition[] builtInTypeBuilders =
     [
         new("string", "Kwality.Datodia.Builders.StringTypeBuilder"),
         new("System.Guid", "Kwality.Datodia.Builders.GuidTypeBuilder"),
+        new("bool", "Kwality.Datodia.Builders.BoolTypeBuilder"),
     ];
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -129,7 +130,7 @@ public sealed class ContainerGenerator : IIncrementalGenerator
         void GenerateContainerSource(SourceProductionContext ctx,
             ImmutableArray<TypeBuilderDefinition?> typeBuilderDefinitions)
         {
-            var allTypeBuilders = this.typeBuilders.Concat(typeBuilderDefinitions).ToImmutableArray();
+            var allTypeBuilders = this.builtInTypeBuilders.Concat(typeBuilderDefinitions).ToImmutableArray();
             var typeBuildersInstance = CreateTypeBuilderInstances(allTypeBuilders);
             var typeBuilderMap = CreateTypeBuilderMap(allTypeBuilders);
 
