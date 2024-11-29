@@ -22,45 +22,24 @@
 // ==                FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // ==                OTHER DEALINGS IN THE SOFTWARE.
 // =====================================================================================================================
-namespace Kwality.Datodia.Tests.Verifiers;
-
-using Kwality.Datodia.Tests.Extensions;
-using Kwality.Datodia.Tests.Verifiers.Abstractions;
-
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member - Reason: NOT Public.
+namespace Kwality.Datodia.Usage.Tests;
 
 using Xunit;
 
-internal sealed class SourceGeneratorVerifier<TGenerator> : RoslynComponentVerifier
-    where TGenerator : IIncrementalGenerator, new()
+public sealed partial class ContainerTests
 {
-    public string[]? ExpectedGeneratedSources
+    [Fact(DisplayName = "'Create<T>': When 'T' is a 'GUID' a unique GUID is returned.")]
+    internal void Create_guid_returns_a_unique_guid()
     {
-        get;
-        init;
-    }
+        // ARRANGE.
+        var container = new Container();
 
-    public void Verify()
-    {
-        // Arrange.
-        var compilation = CreateCompilation();
-        var generator = new TGenerator();
+        // ACT.
+        var r1 = container.Create<Guid>();
+        var r2 = container.Create<Guid>();
 
-        // Act.
-        _ = CSharpGeneratorDriver.Create(generator)
-                                 .RunGeneratorsAndUpdateCompilation(compilation, out var result, out var diagnostics);
-
-        // Assert.
-        result.FailIfCompilationErrors();
-        Assert.Empty(diagnostics);
-
-        Assert.Equal((this.ExpectedGeneratedSources ?? []).Length,
-                     result.SyntaxTrees.Count() - compilation.SyntaxTrees.Count());
-
-        foreach (var expectedGeneratedSource in this.ExpectedGeneratedSources ?? [])
-        {
-            Assert.Contains(result.SyntaxTrees, x => x.ToString() == expectedGeneratedSource);
-        }
+        // ASSERT.
+        Assert.NotEqual(r1, r2);
     }
 }

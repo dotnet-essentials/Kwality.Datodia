@@ -22,45 +22,18 @@
 // ==                FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // ==                OTHER DEALINGS IN THE SOFTWARE.
 // =====================================================================================================================
-namespace Kwality.Datodia.Tests.Verifiers;
+namespace Kwality.Datodia.Builders;
 
-using Kwality.Datodia.Tests.Extensions;
-using Kwality.Datodia.Tests.Verifiers.Abstractions;
+using Kwality.Datodia.Builders.Abstractions;
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-
-using Xunit;
-
-internal sealed class SourceGeneratorVerifier<TGenerator> : RoslynComponentVerifier
-    where TGenerator : IIncrementalGenerator, new()
+/// <summary>
+///     A builder that's used to create unique 'string' instances.
+/// </summary>
+public sealed class StringTypeBuilder : ITypeBuilder<string>
 {
-    public string[]? ExpectedGeneratedSources
+    /// <inheritdoc />
+    public object Create()
     {
-        get;
-        init;
-    }
-
-    public void Verify()
-    {
-        // Arrange.
-        var compilation = CreateCompilation();
-        var generator = new TGenerator();
-
-        // Act.
-        _ = CSharpGeneratorDriver.Create(generator)
-                                 .RunGeneratorsAndUpdateCompilation(compilation, out var result, out var diagnostics);
-
-        // Assert.
-        result.FailIfCompilationErrors();
-        Assert.Empty(diagnostics);
-
-        Assert.Equal((this.ExpectedGeneratedSources ?? []).Length,
-                     result.SyntaxTrees.Count() - compilation.SyntaxTrees.Count());
-
-        foreach (var expectedGeneratedSource in this.ExpectedGeneratedSources ?? [])
-        {
-            Assert.Contains(result.SyntaxTrees, x => x.ToString() == expectedGeneratedSource);
-        }
+        return Guid.NewGuid().ToString();
     }
 }

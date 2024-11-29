@@ -25,14 +25,20 @@
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member - No API usage defined.
 namespace Kwality.Datodia.Roslyn.Generators;
 
+using System.Collections.Immutable;
 using System.Text;
 
+using Kwality.Datodia.Roslyn.Extensions.Symbols;
+
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 [Generator]
 public sealed class ContainerGenerator : IIncrementalGenerator
 {
+    private const string typeBuilderFullName = "Kwality.Datodia.Builders.Abstractions.ITypeBuilder<T>";
+
     private const string containerSource = """
                                            namespace Kwality.Datodia;
 
@@ -46,11 +52,7 @@ public sealed class ContainerGenerator : IIncrementalGenerator
                                            /// </summary>
                                            public sealed class Container
                                            {
-                                               private readonly Dictionary<Type, Func<object>> typeBuilders = new()
-                                               {
-                                                   { typeof(string), () => Guid.NewGuid().ToString() },
-                                               };
-                                           
+                                               [[#[[TYPE_BUILDERS]]#]]
                                                /// <summary>
                                                ///     The total number of elements to create when using <see cref="CreateMany{T}" />.
                                                /// </summary>
@@ -95,13 +97,70 @@ public sealed class ContainerGenerator : IIncrementalGenerator
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        context.RegisterPostInitializationOutput(AddContainerSource);
+        var typeBuilders = context.SyntaxProvider
+                                  .CreateSyntaxProvider(TypeBuildersPredicate, TypeBuildersTransformation)
+                                  .Where(typeBuilder => typeBuilder is not null);
 
-        return;
+        context.RegisterSourceOutput(typeBuilders.Collect(), GenerateContainerSource);
 
-        static void AddContainerSource(IncrementalGeneratorPostInitializationContext ctx)
+        bool TypeBuildersPredicate(SyntaxNode node, CancellationToken _)
         {
-            ctx.AddSource("Container.g.cs", SourceText.From(containerSource, Encoding.UTF8));
+            return node is ClassDeclarationSyntax { BaseList: not null };
+        }
+
+        TypeBuilderDefinition? TypeBuildersTransformation(GeneratorSyntaxContext ctx,
+            CancellationToken cancellationToken)
+        {
+            var classDeclaration = (ClassDeclarationSyntax)ctx.Node;
+            var symbol = ctx.SemanticModel.GetDeclaredSymbol(classDeclaration, cancellationToken) as INamedTypeSymbol;
+            var @interface = symbol?.GetInterface(typeBuilderFullName);
+
+            return symbol != null && @interface != null
+                       ? new(@interface.TypeArguments[0].ToDisplayString(), symbol.ToDisplayString()) : null;
+        }
+
+        void GenerateContainerSource(SourceProductionContext ctx,
+            ImmutableArray<TypeBuilderDefinition?> typeBuilderDefinitions)
+        {
+            var sBuilder = new StringBuilder();
+            _ = sBuilder.AppendLine("private readonly Dictionary<Type, Func<object>> typeBuilders = new()");
+            _ = sBuilder.AppendLine("    {");
+            _ = sBuilder.AppendLine(CreateDefaultTypeBuilderMapEntry("string", "StringTypeBuilder"));
+            _ = sBuilder.AppendLine(CreateDefaultTypeBuilderMapEntry("System.Guid", "GuidTypeBuilder"));
+
+            foreach (var definition in Enumerable.OfType<TypeBuilderDefinition>(typeBuilderDefinitions))
+            {
+                _ = sBuilder.AppendLine(definition.FormatAsTypeBuilderMapEntry());
+            }
+
+            _ = sBuilder.AppendLine("    };");
+            var generatedContainerSource = containerSource.Replace("[[#[[TYPE_BUILDERS]]#]]", sBuilder.ToString());
+            ctx.AddSource("Container.g.cs", SourceText.From(generatedContainerSource, Encoding.UTF8));
+        }
+    }
+
+    private static string CreateDefaultTypeBuilderMapEntry(string typeName, string builderName)
+    {
+        const string @namespace = "Kwality.Datodia.Builders";
+
+        return $"        {{ typeof({typeName}), new {@namespace}.{builderName}().Create }},";
+    }
+
+    private sealed record TypeBuilderDefinition(string Type, string Implementation)
+    {
+        public string Type
+        {
+            get;
+        } = Type;
+
+        public string Implementation
+        {
+            get;
+        } = Implementation;
+
+        public string FormatAsTypeBuilderMapEntry()
+        {
+            return $"        {{ typeof({this.Type}), new {this.Implementation}().Create }},";
         }
     }
 }

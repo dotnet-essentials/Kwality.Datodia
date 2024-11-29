@@ -56,7 +56,8 @@ public sealed class ContainerGeneratorTests
                 {
                     private readonly Dictionary<Type, Func<object>> typeBuilders = new()
                     {
-                        { typeof(string), () => Guid.NewGuid().ToString() },
+                        { typeof(string), new Kwality.Datodia.Builders.StringTypeBuilder().Create },
+                        { typeof(System.Guid), new Kwality.Datodia.Builders.GuidTypeBuilder().Create },
                     };
                 
                     /// <summary>
