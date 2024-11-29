@@ -35,7 +35,11 @@ using Xunit;
 internal sealed class SourceGeneratorVerifier<TGenerator> : RoslynComponentVerifier
     where TGenerator : IIncrementalGenerator, new()
 {
-    public string[]? ExpectedGeneratedSources{ get; init; }
+    public string[]? ExpectedGeneratedSources
+    {
+        get;
+        init;
+    }
 
     public void Verify()
     {

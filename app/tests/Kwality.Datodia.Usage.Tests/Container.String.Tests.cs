@@ -22,6 +22,7 @@
 // ==                FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // ==                OTHER DEALINGS IN THE SOFTWARE.
 // =====================================================================================================================
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member - Reason: NOT Public.
 namespace Kwality.Datodia.Usage.Tests;
 
 using Xunit;

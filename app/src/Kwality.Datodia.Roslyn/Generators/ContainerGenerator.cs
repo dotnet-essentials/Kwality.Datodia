@@ -99,7 +99,7 @@ public sealed class ContainerGenerator : IIncrementalGenerator
 
         return;
 
-        void AddContainerSource(IncrementalGeneratorPostInitializationContext ctx)
+        static void AddContainerSource(IncrementalGeneratorPostInitializationContext ctx)
         {
             ctx.AddSource("Container.g.cs", SourceText.From(containerSource, Encoding.UTF8));
         }

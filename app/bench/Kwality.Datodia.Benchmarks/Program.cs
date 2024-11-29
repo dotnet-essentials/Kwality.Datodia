@@ -22,4 +22,44 @@
 // ==                FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // ==                OTHER DEALINGS IN THE SOFTWARE.
 // =====================================================================================================================
-Console.WriteLine("");
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+#pragma warning disable CA1822 // Mark members as static
+#pragma warning disable // Consider making public types internal
+#pragma warning disable CA1050 // Declare types in namespaces
+using AutoFixture;
+
+using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Running;
+
+using Kwality.Datodia;
+
+BenchmarkRunner.Run<DatodiaComparisonBenchmarks>();
+
+[MemoryDiagnoser]
+[RankColumn]
+public class DatodiaComparisonBenchmarks
+{
+    private const int Iterations = 1_000_000;
+
+    [Benchmark]
+    public void CreateStringUsingAutoFixture()
+    {
+        var fixture = new Fixture();
+
+        for (var i = 0; i < Iterations; i++)
+        {
+            _ = fixture.Create<string>();
+        }
+    }
+
+    [Benchmark]
+    public void CreateStringUsingDatodia()
+    {
+        var container = new Container();
+
+        for (var i = 0; i < Iterations; i++)
+        {
+            _ = container.Create<string>();
+        }
+    }
+}
