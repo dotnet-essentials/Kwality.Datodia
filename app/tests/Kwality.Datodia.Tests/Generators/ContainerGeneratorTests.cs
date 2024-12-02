@@ -194,7 +194,7 @@ public sealed class ContainerGeneratorTests
                 """
                 namespace Kwality.Datodia.Builders.Generated;
                 
-                public sealed class PersonTypeBuilder : Kwality.Datodia.Builders.Abstractions.ITypeBuilder<global::Person>
+                public sealed class PersonTypeBuilder : global::Kwality.Datodia.Builders.Abstractions.ITypeBuilder<global::Person>
                 {
                     /// <inheritdoc />
                     public object Create()
@@ -295,7 +295,7 @@ public sealed class ContainerGeneratorTests
                 """
                 namespace Kwality.Datodia.Builders.Generated.Samples;
                 
-                public sealed class PersonTypeBuilder : Kwality.Datodia.Builders.Abstractions.ITypeBuilder<global::Samples.Person>
+                public sealed class PersonTypeBuilder : global::Kwality.Datodia.Builders.Abstractions.ITypeBuilder<global::Samples.Person>
                 {
                     /// <inheritdoc />
                     public object Create()

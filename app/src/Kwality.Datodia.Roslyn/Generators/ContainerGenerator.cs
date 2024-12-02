@@ -172,7 +172,7 @@ public sealed class ContainerGenerator : IIncrementalGenerator
             var source = $$"""
                            namespace {{typeBuilderDefinition.Namespace}};
                            
-                           public sealed class {{typeBuilderDefinition.BuilderName}} : Kwality.Datodia.Builders.Abstractions.ITypeBuilder<global::{{typeBuilderDefinition.FullTypeName}}>
+                           public sealed class {{typeBuilderDefinition.BuilderName}} : global::Kwality.Datodia.Builders.Abstractions.ITypeBuilder<global::{{typeBuilderDefinition.FullTypeName}}>
                            {
                                /// <inheritdoc />
                                public object Create()
