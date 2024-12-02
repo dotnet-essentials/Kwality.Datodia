@@ -54,15 +54,15 @@ public sealed class ContainerGeneratorTests
                 /// </summary>
                 public sealed class Container
                 {
-                    private static readonly Kwality.Datodia.Builders.StringTypeBuilder Kwality_Datodia_Builders_StringTypeBuilder_Instance = new Kwality.Datodia.Builders.StringTypeBuilder();
-                    private static readonly Kwality.Datodia.Builders.GuidTypeBuilder Kwality_Datodia_Builders_GuidTypeBuilder_Instance = new Kwality.Datodia.Builders.GuidTypeBuilder();
-                    private static readonly Kwality.Datodia.Builders.BoolTypeBuilder Kwality_Datodia_Builders_BoolTypeBuilder_Instance = new Kwality.Datodia.Builders.BoolTypeBuilder();
+                    private static readonly Kwality.Datodia.Builders.System.StringTypeBuilder Kwality_Datodia_Builders_System_StringTypeBuilder_Instance = new Kwality.Datodia.Builders.System.StringTypeBuilder();
+                    private static readonly Kwality.Datodia.Builders.System.GuidTypeBuilder Kwality_Datodia_Builders_System_GuidTypeBuilder_Instance = new Kwality.Datodia.Builders.System.GuidTypeBuilder();
+                    private static readonly Kwality.Datodia.Builders.System.BoolTypeBuilder Kwality_Datodia_Builders_System_BoolTypeBuilder_Instance = new Kwality.Datodia.Builders.System.BoolTypeBuilder();
                 
                     private readonly Dictionary<Type, Func<object>> typeBuilders = new()
                     {
-                        { typeof(string), Kwality_Datodia_Builders_StringTypeBuilder_Instance.Create },
-                        { typeof(System.Guid), Kwality_Datodia_Builders_GuidTypeBuilder_Instance.Create },
-                        { typeof(bool), Kwality_Datodia_Builders_BoolTypeBuilder_Instance.Create },
+                        { typeof(string), Kwality_Datodia_Builders_System_StringTypeBuilder_Instance.Create },
+                        { typeof(System.Guid), Kwality_Datodia_Builders_System_GuidTypeBuilder_Instance.Create },
+                        { typeof(bool), Kwality_Datodia_Builders_System_BoolTypeBuilder_Instance.Create },
                     };
                 
                     /// <summary>
@@ -137,17 +137,17 @@ public sealed class ContainerGeneratorTests
                 /// </summary>
                 public sealed class Container
                 {
-                    private static readonly Kwality.Datodia.Builders.StringTypeBuilder Kwality_Datodia_Builders_StringTypeBuilder_Instance = new Kwality.Datodia.Builders.StringTypeBuilder();
-                    private static readonly Kwality.Datodia.Builders.GuidTypeBuilder Kwality_Datodia_Builders_GuidTypeBuilder_Instance = new Kwality.Datodia.Builders.GuidTypeBuilder();
-                    private static readonly Kwality.Datodia.Builders.BoolTypeBuilder Kwality_Datodia_Builders_BoolTypeBuilder_Instance = new Kwality.Datodia.Builders.BoolTypeBuilder();
-                    private static readonly PersonTypeBuilder PersonTypeBuilder_Instance = new PersonTypeBuilder();
+                    private static readonly Kwality.Datodia.Builders.System.StringTypeBuilder Kwality_Datodia_Builders_System_StringTypeBuilder_Instance = new Kwality.Datodia.Builders.System.StringTypeBuilder();
+                    private static readonly Kwality.Datodia.Builders.System.GuidTypeBuilder Kwality_Datodia_Builders_System_GuidTypeBuilder_Instance = new Kwality.Datodia.Builders.System.GuidTypeBuilder();
+                    private static readonly Kwality.Datodia.Builders.System.BoolTypeBuilder Kwality_Datodia_Builders_System_BoolTypeBuilder_Instance = new Kwality.Datodia.Builders.System.BoolTypeBuilder();
+                    private static readonly Kwality.Datodia.Builders.Generated.PersonTypeBuilder Kwality_Datodia_Builders_Generated_PersonTypeBuilder_Instance = new Kwality.Datodia.Builders.Generated.PersonTypeBuilder();
                 
                     private readonly Dictionary<Type, Func<object>> typeBuilders = new()
                     {
-                        { typeof(string), Kwality_Datodia_Builders_StringTypeBuilder_Instance.Create },
-                        { typeof(System.Guid), Kwality_Datodia_Builders_GuidTypeBuilder_Instance.Create },
-                        { typeof(bool), Kwality_Datodia_Builders_BoolTypeBuilder_Instance.Create },
-                        { typeof(Person), PersonTypeBuilder_Instance.Create },
+                        { typeof(string), Kwality_Datodia_Builders_System_StringTypeBuilder_Instance.Create },
+                        { typeof(System.Guid), Kwality_Datodia_Builders_System_GuidTypeBuilder_Instance.Create },
+                        { typeof(bool), Kwality_Datodia_Builders_System_BoolTypeBuilder_Instance.Create },
+                        { typeof(Person), Kwality_Datodia_Builders_Generated_PersonTypeBuilder_Instance.Create },
                     };
                 
                     /// <summary>
@@ -192,6 +192,8 @@ public sealed class ContainerGeneratorTests
                 }
                 """,
                 """
+                namespace Kwality.Datodia.Builders.Generated;
+                
                 public sealed class PersonTypeBuilder : Kwality.Datodia.Builders.Abstractions.ITypeBuilder<Person>
                 {
                     /// <inheritdoc />

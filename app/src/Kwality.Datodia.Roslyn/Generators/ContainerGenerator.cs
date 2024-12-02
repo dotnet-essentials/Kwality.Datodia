@@ -96,11 +96,11 @@ public sealed class ContainerGenerator : IIncrementalGenerator
                                            }
                                            """;
 
-    private readonly TypeBuilderDefinition[] builtInTypeBuilders =
+    private readonly TypeBuilderDefinition[] systemTypeBuilders =
     [
-        new("string", "Kwality.Datodia.Builders.StringTypeBuilder"),
-        new("System.Guid", "Kwality.Datodia.Builders.GuidTypeBuilder"),
-        new("bool", "Kwality.Datodia.Builders.BoolTypeBuilder"),
+        new("string", "StringTypeBuilder", "Kwality.Datodia.Builders.System"),
+        new("System.Guid", "GuidTypeBuilder", "Kwality.Datodia.Builders.System"),
+        new("bool", "BoolTypeBuilder", "Kwality.Datodia.Builders.System"),
     ];
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -146,12 +146,12 @@ public sealed class ContainerGenerator : IIncrementalGenerator
             var recordDeclarationSymbol = (RecordDeclarationSyntax)ctx.Node;
 
             return ctx.SemanticModel.GetDeclaredSymbol(recordDeclarationSymbol, cancellationToken) is INamedTypeSymbol symbol
-                       ? new(symbol.Name, symbol.ToDisplayString() + "TypeBuilder", symbol.GetFullNamespace()) : null;
+                       ? new(symbol.Name, symbol.ToDisplayString() + "TypeBuilder", symbol.GetFullNamespace() == null ? "Kwality.Datodia.Builders.Generated" : $"Kwality.Datodia.Builder.Generated.{symbol.GetFullNamespace()}") : null;
         }
 
         void GenerateContainerSource(SourceProductionContext ctx, ImmutableArray<TypeBuilderDefinition?> typeBuilderDefinitions)
         {
-            var allTypeBuilders = this.builtInTypeBuilders.Concat(typeBuilderDefinitions).ToImmutableArray();
+            var allTypeBuilders = this.systemTypeBuilders.Concat(typeBuilderDefinitions).ToImmutableArray();
             var typeBuildersInstance = CreateTypeBuilderInstances(allTypeBuilders);
             var typeBuilderMap = CreateTypeBuilderMap(allTypeBuilders);
 
@@ -169,38 +169,20 @@ public sealed class ContainerGenerator : IIncrementalGenerator
                 return;
             }
 
-            if (typeBuilderDefinition.Namespace != null)
-            {
-                var source = $$"""
-                               namespace {{typeBuilderDefinition.Namespace}};
-                               
-                               public sealed class {{typeBuilderDefinition.Type}}TypeBuilder : Kwality.Datodia.Builders.Abstractions.ITypeBuilder<{{typeBuilderDefinition.Namespace}}.{{typeBuilderDefinition.Type}}>
+            var source = $$"""
+                           namespace {{typeBuilderDefinition.Namespace}};
+                           
+                           public sealed class {{typeBuilderDefinition.BuilderName}} : Kwality.Datodia.Builders.Abstractions.ITypeBuilder<{{typeBuilderDefinition.FullTypeName}}>
+                           {
+                               /// <inheritdoc />
+                               public object Create()
                                {
-                                   /// <inheritdoc />
-                                   public object Create()
-                                   {
-                                       return new {{typeBuilderDefinition.Namespace}}.{{typeBuilderDefinition.Type}}();
-                                   }
+                                   return new {{typeBuilderDefinition.FullTypeName}}();
                                }
-                               """;
+                           }
+                           """;
 
-                ctx.AddSource($"{typeBuilderDefinition.Namespace}.{typeBuilderDefinition.Type}.g.cs", SourceText.From(source, Encoding.UTF8));
-            }
-            else
-            {
-                var source = $$"""
-                               public sealed class {{typeBuilderDefinition.Type}}TypeBuilder : Kwality.Datodia.Builders.Abstractions.ITypeBuilder<{{typeBuilderDefinition.Type}}>
-                               {
-                                   /// <inheritdoc />
-                                   public object Create()
-                                   {
-                                       return new {{typeBuilderDefinition.Type}}();
-                                   }
-                               }
-                               """;
-
-                ctx.AddSource($"{typeBuilderDefinition.FullName}.g.cs", SourceText.From(source, Encoding.UTF8));
-            }
+            ctx.AddSource($"{typeBuilderDefinition.Namespace}.{typeBuilderDefinition.FullTypeName}.g.cs", SourceText.From(source, Encoding.UTF8));
         }
     }
 
@@ -232,39 +214,35 @@ public sealed class ContainerGenerator : IIncrementalGenerator
         return sBuilder.ToString();
     }
 
-    private sealed record TypeBuilderDefinition(string Type, string FullName, string? Namespace = null)
+    private sealed record TypeBuilderDefinition(string FullTypeName, string BuilderName, string Namespace)
     {
-        public string Type
+        public string FullTypeName
         {
             get;
-        } = Type;
+        } = FullTypeName;
 
-        public string FullName
+        public string BuilderName
         {
             get;
-        } = FullName;
+        } = BuilderName;
 
-        public string? Namespace
+        public string Namespace
         {
             get;
         } = Namespace;
 
         public string FormatAsInstance()
         {
-            var fqName = $"{this.Namespace}.{this.Type}TypeBuilder";
+            var fqName = $"{this.Namespace}.{this.BuilderName}";
 
-            return this.Namespace != null
-                       ? $"    private static readonly {fqName} {fqName.Replace(".", "_")}_Instance = new {this.FullName}();"
-                       : $"    private static readonly {this.FullName} {this.FullName.Replace(".", "_")}_Instance = new {this.FullName}();";
+            return $"    private static readonly {fqName} {fqName.Replace(".", "_")}_Instance = new {fqName}();";
         }
 
         public string FormatAsMapEntry()
         {
-            var fqName = $"{this.Namespace}.{this.Type}TypeBuilder";
+            var fqName = $"{this.Namespace}.{this.BuilderName}";
 
-            return this.Namespace != null
-                       ? $"        {{ typeof({this.Namespace}.{this.Type}), {fqName.Replace(".", "_")}_Instance.Create }},"
-                       : $"        {{ typeof({this.Type}), {this.FullName.Replace(".", "_")}_Instance.Create }},";
+            return $"        {{ typeof({this.FullTypeName}), {fqName.Replace(".", "_")}_Instance.Create }},";
         }
     }
 }

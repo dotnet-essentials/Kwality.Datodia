@@ -22,18 +22,22 @@
 // ==                FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // ==                OTHER DEALINGS IN THE SOFTWARE.
 // =====================================================================================================================
-namespace Kwality.Datodia.Builders;
+namespace Kwality.Datodia.Builders.System;
 
 using Kwality.Datodia.Builders.Abstractions;
 
 /// <summary>
-///     A builder that's used to create unique 'string' instances.
+///     A builder that's used to create unique 'bool' instances.
 /// </summary>
-public sealed class StringTypeBuilder : ITypeBuilder<string>
+public sealed class BoolTypeBuilder : ITypeBuilder<bool>
 {
+    private bool value;
+
     /// <inheritdoc />
     public object Create()
     {
-        return Guid.NewGuid().ToString();
+        this.value = !this.value;
+
+        return this.value;
     }
 }
