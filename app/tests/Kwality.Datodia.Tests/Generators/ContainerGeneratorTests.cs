@@ -40,6 +40,11 @@ public sealed class ContainerGeneratorTests
         {
             InputSources = [
                 "public sealed record Person;",
+                """
+                namespace Samples;
+                
+                public sealed record Person;
+                """,
             ],
             ExpectedGeneratedSources =
             [
@@ -60,6 +65,7 @@ public sealed class ContainerGeneratorTests
                     private static readonly Kwality.Datodia.Builders.GuidTypeBuilder Kwality_Datodia_Builders_GuidTypeBuilder_Instance = new Kwality.Datodia.Builders.GuidTypeBuilder();
                     private static readonly Kwality.Datodia.Builders.BoolTypeBuilder Kwality_Datodia_Builders_BoolTypeBuilder_Instance = new Kwality.Datodia.Builders.BoolTypeBuilder();
                     private static readonly PersonTypeBuilder PersonTypeBuilder_Instance = new PersonTypeBuilder();
+                    private static readonly Samples.PersonTypeBuilder Samples_PersonTypeBuilder_Instance = new Samples.PersonTypeBuilder();
                 
                     private readonly Dictionary<Type, Func<object>> typeBuilders = new()
                     {
@@ -67,6 +73,7 @@ public sealed class ContainerGeneratorTests
                         { typeof(System.Guid), Kwality_Datodia_Builders_GuidTypeBuilder_Instance.Create },
                         { typeof(bool), Kwality_Datodia_Builders_BoolTypeBuilder_Instance.Create },
                         { typeof(Person), PersonTypeBuilder_Instance.Create },
+                        { typeof(Samples.Person), Samples_PersonTypeBuilder_Instance.Create },
                     };
                 
                     /// <summary>
@@ -117,6 +124,18 @@ public sealed class ContainerGeneratorTests
                     public object Create()
                     {
                         return new Person();
+                    }
+                }
+                """,
+                """
+                namespace Samples;
+                
+                public sealed class PersonTypeBuilder : Kwality.Datodia.Builders.Abstractions.ITypeBuilder<Samples.Person>
+                {
+                    /// <inheritdoc />
+                    public object Create()
+                    {
+                        return new Samples.Person();
                     }
                 }
                 """,

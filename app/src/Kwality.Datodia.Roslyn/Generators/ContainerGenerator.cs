@@ -173,7 +173,7 @@ public sealed class ContainerGenerator : IIncrementalGenerator
             {
                 var source = $$"""
                                namespace {{typeBuilderDefinition.Namespace}};
-
+                               
                                public sealed class {{typeBuilderDefinition.Type}}TypeBuilder : Kwality.Datodia.Builders.Abstractions.ITypeBuilder<{{typeBuilderDefinition.Namespace}}.{{typeBuilderDefinition.Type}}>
                                {
                                    /// <inheritdoc />
@@ -251,7 +251,7 @@ public sealed class ContainerGenerator : IIncrementalGenerator
 
         public string FormatAsInstance()
         {
-            var fqName = $"{this.Namespace}.{this.Type}";
+            var fqName = $"{this.Namespace}.{this.Type}TypeBuilder";
 
             return !string.IsNullOrEmpty(this.Namespace)
                        ? $"    private static readonly {fqName} {fqName.Replace(".", "_")}_Instance = new {this.FullName}();"
@@ -260,10 +260,10 @@ public sealed class ContainerGenerator : IIncrementalGenerator
 
         public string FormatAsMapEntry()
         {
-            var fqName = $"{this.Namespace}.{this.Type}";
+            var fqName = $"{this.Namespace}.{this.Type}TypeBuilder";
 
             return !string.IsNullOrEmpty(this.Namespace)
-                       ? $"        {{ typeof({fqName}), {fqName.Replace(".", "_")}_Instance.Create }},"
+                       ? $"        {{ typeof({this.Namespace}.{this.Type}), {fqName.Replace(".", "_")}_Instance.Create }},"
                        : $"        {{ typeof({this.Type}), {this.FullName.Replace(".", "_")}_Instance.Create }},";
         }
     }
