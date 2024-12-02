@@ -29,8 +29,8 @@ using Xunit;
 
 public sealed partial class ContainerTests
 {
-    [Fact(DisplayName = "'Register<T>': A custom factory is registered for 'T'.")]
-    internal void Register_custom_factory_uses_the_custom_factory()
+    [Fact(DisplayName = "'Register<T>': A custom builder is registered for 'T'.")]
+    internal void Register_custom_builder_uses_the_custom_factory()
     {
         // ARRANGE.
         var container = new Container();
