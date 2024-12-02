@@ -38,7 +38,9 @@ public sealed class ContainerGeneratorTests
         // Arrange.
         var sut = new SourceGeneratorVerifier<ContainerGenerator>
         {
-            InputSources = [],
+            InputSources = [
+                "public sealed record Person(string Name, string FirstName);",
+            ],
             ExpectedGeneratedSources =
             [
                 """

@@ -107,13 +107,27 @@ public sealed class ContainerGenerator : IIncrementalGenerator
     {
         var typeBuilders = context.SyntaxProvider
                                   .CreateSyntaxProvider(TypeBuildersPredicate, TypeBuildersTransformation)
-                                  .Where(typeBuilder => typeBuilder is not null);
+                                  .Where(typeBuilder => typeBuilder is not null).Collect();
 
-        context.RegisterSourceOutput(typeBuilders.Collect(), GenerateContainerSource);
+        var records = context.SyntaxProvider
+                             .CreateSyntaxProvider(RecordsPredicate, RecordsDeclarationSyntaxTransformation)
+                             .Where(typeBuilder => typeBuilder is not null);
+
+        var combined = typeBuilders.Combine(records.Collect());
+        var flattenedProvider = combined.SelectMany((tuple, _) => tuple.Left.Concat(tuple.Right)).Collect();
+        var aggregatedProvider = combined.Select((tuple, _) => tuple.Left.Concat(tuple.Right));
+
+        context.RegisterSourceOutput(records, GenerateRecordTypeBuilder);
+        context.RegisterSourceOutput(flattenedProvider, GenerateContainerSource);
 
         bool TypeBuildersPredicate(SyntaxNode node, CancellationToken _)
         {
             return node is ClassDeclarationSyntax { BaseList: not null };
+        }
+
+        bool RecordsPredicate(SyntaxNode node, CancellationToken _)
+        {
+            return node is RecordDeclarationSyntax;
         }
 
         TypeBuilderDefinition? TypeBuildersTransformation(GeneratorSyntaxContext ctx,
@@ -127,8 +141,16 @@ public sealed class ContainerGenerator : IIncrementalGenerator
                        ? new(@interface.TypeArguments[0].ToDisplayString(), symbol.ToDisplayString()) : null;
         }
 
-        void GenerateContainerSource(SourceProductionContext ctx,
-            ImmutableArray<TypeBuilderDefinition?> typeBuilderDefinitions)
+        TypeBuilderDefinition? RecordsDeclarationSyntaxTransformation(GeneratorSyntaxContext ctx,
+            CancellationToken cancellationToken)
+        {
+            var recordDeclarationSymbol = (RecordDeclarationSyntax)ctx.Node;
+
+            return ctx.SemanticModel.GetDeclaredSymbol(recordDeclarationSymbol, cancellationToken) is INamedTypeSymbol symbol
+                       ? new(symbol.Name, symbol.ToDisplayString()) : null;
+        }
+
+        void GenerateContainerSource(SourceProductionContext ctx, ImmutableArray<TypeBuilderDefinition?> typeBuilderDefinitions)
         {
             var allTypeBuilders = this.builtInTypeBuilders.Concat(typeBuilderDefinitions).ToImmutableArray();
             var typeBuildersInstance = CreateTypeBuilderInstances(allTypeBuilders);
@@ -139,6 +161,31 @@ public sealed class ContainerGenerator : IIncrementalGenerator
                                           .Replace("[[#[[TYPE_BUILDERS_MAP]]#]]", typeBuilderMap);
 
             ctx.AddSource("Container.g.cs", SourceText.From(generatedContainerSource, Encoding.UTF8));
+        }
+
+        void GenerateRecordTypeBuilder(SourceProductionContext ctx, TypeBuilderDefinition? typeBuilderDefinition)
+        {
+            if (typeBuilderDefinition == null)
+            {
+                return;
+            }
+
+            var source = $$"""
+                           namespace Kwality.Datodia;
+
+                           using System;
+
+                           public sealed class {{typeBuilderDefinition.FullName}}TypeBuilder : Kwality.Datodia.Builders.Abstractions.ITypeBuilder<Kwality.Datodia.Models.{{typeBuilderDefinition.FullName}}>
+                           {
+                               /// <inheritdoc />
+                               public object Create()
+                               {
+                                   return Guid.NewGuid().ToString();
+                               }
+                           }
+                           """;
+
+            ctx.AddSource($"{typeBuilderDefinition.FullName}.g.cs", SourceText.From(source, Encoding.UTF8));
         }
     }
 

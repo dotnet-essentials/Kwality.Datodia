@@ -1,4 +1,4 @@
-// =====================================================================================================================
+﻿// =====================================================================================================================
 // == LICENSE:       Copyright (c) 2024 Kevin De Coninck
 // ==
 // ==                Permission is hereby granted, free of charge, to any person
@@ -22,28 +22,6 @@
 // ==                FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // ==                OTHER DEALINGS IN THE SOFTWARE.
 // =====================================================================================================================
-namespace Kwality.Datodia.Tests.Verifiers.Abstractions;
+namespace Kwality.Datodia.Usage.Tests.Models;
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-
-internal abstract class RoslynComponentVerifier
-{
-    public string[]? InputSources
-    {
-        get;
-        init;
-    }
-
-    protected Compilation CreateCompilation()
-    {
-        var trustedPlatformAssemblies =
-            AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")?.ToString()?.Split(Path.PathSeparator) ?? [];
-
-        var references = trustedPlatformAssemblies.Select(p => MetadataReference.CreateFromFile(p)).ToList();
-
-        return CSharpCompilation.Create("Kwality.Datodia",
-                                        (this.InputSources ?? []).Select(x => CSharpSyntaxTree.ParseText(x)),
-                                        references, new(OutputKind.DynamicallyLinkedLibrary));
-    }
-}
+public sealed record Person(string Name, string FirstName);
