@@ -98,9 +98,9 @@ public sealed class ContainerGenerator : IIncrementalGenerator
 
     private readonly TypeBuilderDefinition[] builtInTypeBuilders =
     [
-        new("string", "Kwality.Datodia.Builders.StringTypeBuilder", string.Empty),
-        new("System.Guid", "Kwality.Datodia.Builders.GuidTypeBuilder", string.Empty),
-        new("bool", "Kwality.Datodia.Builders.BoolTypeBuilder", string.Empty),
+        new("string", "Kwality.Datodia.Builders.StringTypeBuilder"),
+        new("System.Guid", "Kwality.Datodia.Builders.GuidTypeBuilder"),
+        new("bool", "Kwality.Datodia.Builders.BoolTypeBuilder"),
     ];
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -137,7 +137,7 @@ public sealed class ContainerGenerator : IIncrementalGenerator
             var @interface = symbol?.GetInterface(typeBuilderFullName);
 
             return symbol != null && @interface != null
-                       ? new(@interface.TypeArguments[0].ToDisplayString(), @interface.ToDisplayString(), @interface.ContainingNamespace.IsGlobalNamespace ? string.Empty : @interface.ContainingNamespace.ToDisplayString()) : null;
+                       ? new(@interface.TypeArguments[0].ToDisplayString(), @interface.ToDisplayString(), @interface.GetFullNamespace()) : null;
         }
 
         TypeBuilderDefinition? RecordsDeclarationSyntaxTransformation(GeneratorSyntaxContext ctx,
@@ -146,7 +146,7 @@ public sealed class ContainerGenerator : IIncrementalGenerator
             var recordDeclarationSymbol = (RecordDeclarationSyntax)ctx.Node;
 
             return ctx.SemanticModel.GetDeclaredSymbol(recordDeclarationSymbol, cancellationToken) is INamedTypeSymbol symbol
-                       ? new(symbol.Name, symbol.ToDisplayString() + "TypeBuilder", symbol.ContainingNamespace.IsGlobalNamespace ? string.Empty : symbol.ContainingNamespace.ToDisplayString()) : null;
+                       ? new(symbol.Name, symbol.ToDisplayString() + "TypeBuilder", symbol.GetFullNamespace()) : null;
         }
 
         void GenerateContainerSource(SourceProductionContext ctx, ImmutableArray<TypeBuilderDefinition?> typeBuilderDefinitions)
@@ -169,7 +169,7 @@ public sealed class ContainerGenerator : IIncrementalGenerator
                 return;
             }
 
-            if (!string.IsNullOrEmpty(typeBuilderDefinition.Namespace))
+            if (typeBuilderDefinition.Namespace != null)
             {
                 var source = $$"""
                                namespace {{typeBuilderDefinition.Namespace}};
@@ -184,7 +184,7 @@ public sealed class ContainerGenerator : IIncrementalGenerator
                                }
                                """;
 
-                ctx.AddSource($"{typeBuilderDefinition.FullName}.g.cs", SourceText.From(source, Encoding.UTF8));
+                ctx.AddSource($"{typeBuilderDefinition.Namespace}.{typeBuilderDefinition.Type}.g.cs", SourceText.From(source, Encoding.UTF8));
             }
             else
             {
@@ -232,7 +232,7 @@ public sealed class ContainerGenerator : IIncrementalGenerator
         return sBuilder.ToString();
     }
 
-    private sealed record TypeBuilderDefinition(string Type, string FullName, string Namespace)
+    private sealed record TypeBuilderDefinition(string Type, string FullName, string? Namespace = null)
     {
         public string Type
         {
@@ -244,7 +244,7 @@ public sealed class ContainerGenerator : IIncrementalGenerator
             get;
         } = FullName;
 
-        public string Namespace
+        public string? Namespace
         {
             get;
         } = Namespace;
@@ -253,7 +253,7 @@ public sealed class ContainerGenerator : IIncrementalGenerator
         {
             var fqName = $"{this.Namespace}.{this.Type}TypeBuilder";
 
-            return !string.IsNullOrEmpty(this.Namespace)
+            return this.Namespace != null
                        ? $"    private static readonly {fqName} {fqName.Replace(".", "_")}_Instance = new {this.FullName}();"
                        : $"    private static readonly {this.FullName} {this.FullName.Replace(".", "_")}_Instance = new {this.FullName}();";
         }
@@ -262,7 +262,7 @@ public sealed class ContainerGenerator : IIncrementalGenerator
         {
             var fqName = $"{this.Namespace}.{this.Type}TypeBuilder";
 
-            return !string.IsNullOrEmpty(this.Namespace)
+            return this.Namespace != null
                        ? $"        {{ typeof({this.Namespace}.{this.Type}), {fqName.Replace(".", "_")}_Instance.Create }},"
                        : $"        {{ typeof({this.Type}), {this.FullName.Replace(".", "_")}_Instance.Create }},";
         }
