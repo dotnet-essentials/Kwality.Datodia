@@ -194,12 +194,12 @@ public sealed class ContainerGeneratorTests
                 """
                 namespace Kwality.Datodia.Builders.Generated;
                 
-                public sealed class PersonTypeBuilder : Kwality.Datodia.Builders.Abstractions.ITypeBuilder<Person>
+                public sealed class PersonTypeBuilder : Kwality.Datodia.Builders.Abstractions.ITypeBuilder<global::Person>
                 {
                     /// <inheritdoc />
                     public object Create()
                     {
-                        return new Person();
+                        return new global::Person();
                     }
                 }
                 """,
@@ -238,17 +238,17 @@ public sealed class ContainerGeneratorTests
                 /// </summary>
                 public sealed class Container
                 {
-                    private static readonly Kwality.Datodia.Builders.StringTypeBuilder Kwality_Datodia_Builders_StringTypeBuilder_Instance = new Kwality.Datodia.Builders.StringTypeBuilder();
-                    private static readonly Kwality.Datodia.Builders.GuidTypeBuilder Kwality_Datodia_Builders_GuidTypeBuilder_Instance = new Kwality.Datodia.Builders.GuidTypeBuilder();
-                    private static readonly Kwality.Datodia.Builders.BoolTypeBuilder Kwality_Datodia_Builders_BoolTypeBuilder_Instance = new Kwality.Datodia.Builders.BoolTypeBuilder();
-                    private static readonly Samples.PersonTypeBuilder Samples_PersonTypeBuilder_Instance = new Samples.PersonTypeBuilder();
+                    private static readonly Kwality.Datodia.Builders.System.StringTypeBuilder Kwality_Datodia_Builders_System_StringTypeBuilder_Instance = new Kwality.Datodia.Builders.System.StringTypeBuilder();
+                    private static readonly Kwality.Datodia.Builders.System.GuidTypeBuilder Kwality_Datodia_Builders_System_GuidTypeBuilder_Instance = new Kwality.Datodia.Builders.System.GuidTypeBuilder();
+                    private static readonly Kwality.Datodia.Builders.System.BoolTypeBuilder Kwality_Datodia_Builders_System_BoolTypeBuilder_Instance = new Kwality.Datodia.Builders.System.BoolTypeBuilder();
+                    private static readonly Kwality.Datodia.Builders.Generated.Samples.PersonTypeBuilder Kwality_Datodia_Builders_Generated_Samples_PersonTypeBuilder_Instance = new Kwality.Datodia.Builders.Generated.Samples.PersonTypeBuilder();
                 
                     private readonly Dictionary<Type, Func<object>> typeBuilders = new()
                     {
-                        { typeof(string), Kwality_Datodia_Builders_StringTypeBuilder_Instance.Create },
-                        { typeof(System.Guid), Kwality_Datodia_Builders_GuidTypeBuilder_Instance.Create },
-                        { typeof(bool), Kwality_Datodia_Builders_BoolTypeBuilder_Instance.Create },
-                        { typeof(Samples.Person), Samples_PersonTypeBuilder_Instance.Create },
+                        { typeof(string), Kwality_Datodia_Builders_System_StringTypeBuilder_Instance.Create },
+                        { typeof(System.Guid), Kwality_Datodia_Builders_System_GuidTypeBuilder_Instance.Create },
+                        { typeof(bool), Kwality_Datodia_Builders_System_BoolTypeBuilder_Instance.Create },
+                        { typeof(Samples.Person), Kwality_Datodia_Builders_Generated_Samples_PersonTypeBuilder_Instance.Create },
                     };
                 
                     /// <summary>
@@ -293,14 +293,14 @@ public sealed class ContainerGeneratorTests
                 }
                 """,
                 """
-                namespace Samples;
+                namespace Kwality.Datodia.Builders.Generated.Samples;
                 
-                public sealed class PersonTypeBuilder : Kwality.Datodia.Builders.Abstractions.ITypeBuilder<Samples.Person>
+                public sealed class PersonTypeBuilder : Kwality.Datodia.Builders.Abstractions.ITypeBuilder<global::Samples.Person>
                 {
                     /// <inheritdoc />
                     public object Create()
                     {
-                        return new Samples.Person();
+                        return new global::Samples.Person();
                     }
                 }
                 """,

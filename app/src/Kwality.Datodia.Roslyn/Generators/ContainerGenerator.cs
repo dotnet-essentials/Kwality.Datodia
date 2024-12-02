@@ -146,7 +146,7 @@ public sealed class ContainerGenerator : IIncrementalGenerator
             var recordDeclarationSymbol = (RecordDeclarationSyntax)ctx.Node;
 
             return ctx.SemanticModel.GetDeclaredSymbol(recordDeclarationSymbol, cancellationToken) is INamedTypeSymbol symbol
-                       ? new(symbol.Name, symbol.ToDisplayString() + "TypeBuilder", symbol.GetFullNamespace() == null ? "Kwality.Datodia.Builders.Generated" : $"Kwality.Datodia.Builder.Generated.{symbol.GetFullNamespace()}") : null;
+                       ? new(symbol.ToDisplayString(), symbol.Name + "TypeBuilder", symbol.GetFullNamespace() == null ? "Kwality.Datodia.Builders.Generated" : $"Kwality.Datodia.Builders.Generated.{symbol.GetFullNamespace()}") : null;
         }
 
         void GenerateContainerSource(SourceProductionContext ctx, ImmutableArray<TypeBuilderDefinition?> typeBuilderDefinitions)
@@ -172,17 +172,17 @@ public sealed class ContainerGenerator : IIncrementalGenerator
             var source = $$"""
                            namespace {{typeBuilderDefinition.Namespace}};
                            
-                           public sealed class {{typeBuilderDefinition.BuilderName}} : Kwality.Datodia.Builders.Abstractions.ITypeBuilder<{{typeBuilderDefinition.FullTypeName}}>
+                           public sealed class {{typeBuilderDefinition.BuilderName}} : Kwality.Datodia.Builders.Abstractions.ITypeBuilder<global::{{typeBuilderDefinition.FullTypeName}}>
                            {
                                /// <inheritdoc />
                                public object Create()
                                {
-                                   return new {{typeBuilderDefinition.FullTypeName}}();
+                                   return new global::{{typeBuilderDefinition.FullTypeName}}();
                                }
                            }
                            """;
 
-            ctx.AddSource($"{typeBuilderDefinition.Namespace}.{typeBuilderDefinition.FullTypeName}.g.cs", SourceText.From(source, Encoding.UTF8));
+            ctx.AddSource($"{typeBuilderDefinition.Namespace}.{typeBuilderDefinition.BuilderName}.g.cs", SourceText.From(source, Encoding.UTF8));
         }
     }
 
