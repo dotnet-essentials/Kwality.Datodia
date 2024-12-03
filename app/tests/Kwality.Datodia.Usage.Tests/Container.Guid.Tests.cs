@@ -25,6 +25,8 @@
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member - Reason: NOT Public.
 namespace Kwality.Datodia.Usage.Tests;
 
+using FluentAssertions;
+
 using Xunit;
 
 public sealed partial class ContainerTests
@@ -40,6 +42,6 @@ public sealed partial class ContainerTests
         var r2 = container.Create<Guid>();
 
         // ASSERT.
-        Assert.NotEqual(r1, r2);
+        _ = r1.Should().NotBe(r2);
     }
 }

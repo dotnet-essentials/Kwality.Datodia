@@ -25,6 +25,8 @@
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member - Reason: NOT Public.
 namespace Kwality.Datodia.Usage.Tests;
 
+using FluentAssertions;
+
 using Xunit;
 
 public sealed partial class ContainerTests
@@ -39,7 +41,7 @@ public sealed partial class ContainerTests
         var result = container.Create<Person>();
 
         // ASSERT.
-        Assert.NotNull(result);
+        _ = result.Should().NotBeNull();
     }
 
     [Fact(DisplayName = "'Register<T>': A custom builder is registered for 'T'.")]
@@ -52,7 +54,7 @@ public sealed partial class ContainerTests
         container.Register<string>(() => "Hello, World!");
 
         // ASSERT.
-        Assert.Equal("Hello, World!", container.Create<string>());
+        _ = container.Create<string>().Should().BeEquivalentTo("Hello, World!");
     }
 
     [Fact(DisplayName = "'CreateMany<T>': Returns 3 elements by default.")]
@@ -65,7 +67,7 @@ public sealed partial class ContainerTests
         var result = container.CreateMany<string>();
 
         // ASSERT.
-        Assert.Equal(3, result.Count());
+        _ = result.Should().HaveCount(3);
     }
 
     [Fact(DisplayName = "'CreateMany<T>': Returns predefined amount of elements.")]
@@ -81,7 +83,7 @@ public sealed partial class ContainerTests
         var result = container.CreateMany<string>();
 
         // ASSERT.
-        Assert.Equal(10, result.Count());
+        _ = result.Should().HaveCount(10);
     }
 
     internal sealed record Person;

@@ -24,13 +24,13 @@
 // =====================================================================================================================
 namespace Kwality.Datodia.Tests.Verifiers;
 
+using FluentAssertions;
+
 using Kwality.Datodia.Tests.Extensions;
 using Kwality.Datodia.Tests.Verifiers.Abstractions;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-
-using Xunit;
 
 internal sealed class SourceGeneratorVerifier<TGenerator> : RoslynComponentVerifier
     where TGenerator : IIncrementalGenerator, new()
@@ -58,15 +58,12 @@ internal sealed class SourceGeneratorVerifier<TGenerator> : RoslynComponentVerif
                                               .RunGenerators(compilationClone).GetRunResult();
 
         // Assert.
-        result.FailIfCompilationErrors();
-        Assert.Empty(diagnostics);
+        _ = compilation.GetDiagnostics().Where(diagnostic => diagnostic.IsError()).Should().BeEmpty();
+        _ = diagnostics.Should().BeEmpty();
 
-        Assert.Equal((this.ExpectedGeneratedSources ?? []).Length,
-                     result.SyntaxTrees.Count() - compilation.SyntaxTrees.Count());
+        _ = result.SyntaxTrees.Select(x => x.ToString()).Should()
+                  .HaveCount(compilation.SyntaxTrees.Count() + (this.ExpectedGeneratedSources?.Length ?? 0));
 
-        foreach (var expectedGeneratedSource in this.ExpectedGeneratedSources ?? [])
-        {
-            Assert.Contains(result.SyntaxTrees, x => x.ToString() == expectedGeneratedSource);
-        }
+        _ = result.SyntaxTrees.Select(x => x.ToString()).Should().Contain(this.ExpectedGeneratedSources ?? []);
     }
 }
