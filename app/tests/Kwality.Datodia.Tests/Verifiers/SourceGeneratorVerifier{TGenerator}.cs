@@ -45,11 +45,17 @@ internal sealed class SourceGeneratorVerifier<TGenerator> : RoslynComponentVerif
     {
         // Arrange.
         var compilation = CreateCompilation();
-        var generator = new TGenerator();
+        var compilationClone = compilation.Clone();
+        var generator = new TGenerator().AsSourceGenerator();
+        var options = new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, true);
 
         // Act.
-        _ = CSharpGeneratorDriver.Create(generator)
-                                 .RunGeneratorsAndUpdateCompilation(compilation, out var result, out var diagnostics);
+        var runResult1 = CSharpGeneratorDriver.Create([generator], driverOptions: options)
+                                              .RunGeneratorsAndUpdateCompilation(compilation, out var result,
+                                                   out var diagnostics).GetRunResult();
+
+        var runResult2 = CSharpGeneratorDriver.Create([generator], driverOptions: options)
+                                              .RunGenerators(compilationClone).GetRunResult();
 
         // Assert.
         result.FailIfCompilationErrors();
