@@ -1,4 +1,4 @@
-// =====================================================================================================================
+﻿// =====================================================================================================================
 // == LICENSE:       Copyright (c) 2024 Kevin De Coninck
 // ==
 // ==                Permission is hereby granted, free of charge, to any person
@@ -22,22 +22,19 @@
 // ==                FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // ==                OTHER DEALINGS IN THE SOFTWARE.
 // =====================================================================================================================
-namespace Kwality.Datodia.Builders;
+namespace Kwality.Datodia.Roslyn.Extensions.Symbols;
 
-using Kwality.Datodia.Builders.Abstractions;
+using Microsoft.CodeAnalysis;
 
-/// <summary>
-///     A builder that's used to create unique 'bool' instances.
-/// </summary>
-public sealed class BoolTypeBuilder : ITypeBuilder<bool>
+internal static class SymbolExtensions
 {
-    private bool value;
-
-    /// <inheritdoc />
-    public object Create()
+    public static string GetDisplayNamespace(this ISymbol symbol)
     {
-        this.value = !this.value;
+        var symbolNamespace = symbol.ContainingNamespace.IsGlobalNamespace ? string.Empty
+                                  : symbol.ContainingNamespace.ToDisplayString();
 
-        return this.value;
+        var containingType = symbol.ContainingType != null ? symbol.ContainingType.ToDisplayString() : string.Empty;
+
+        return string.IsNullOrEmpty(containingType) ? symbolNamespace : $"{symbolNamespace}.{containingType}";
     }
 }

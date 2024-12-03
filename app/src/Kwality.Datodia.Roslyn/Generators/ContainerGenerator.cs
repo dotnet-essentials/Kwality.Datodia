@@ -29,6 +29,7 @@ using System.Collections.Immutable;
 using System.Text;
 
 using Kwality.Datodia.Roslyn.Extensions.Symbols;
+using Kwality.Datodia.Roslyn.Generators.Models;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -37,7 +38,11 @@ using Microsoft.CodeAnalysis.Text;
 [Generator]
 public sealed class ContainerGenerator : IIncrementalGenerator
 {
-    private const string typeBuilderFullName = "Kwality.Datodia.Builders.Abstractions.ITypeBuilder<T>";
+    private const string typeBuilderInterfaceNamespace = "Kwality.Datodia.Builders.Abstractions";
+    private const string typeBuilderInterfaceName = "ITypeBuilder";
+    private const string typeBuilderInterfaceFqName = $"{typeBuilderInterfaceNamespace}.{typeBuilderInterfaceName}<T>";
+    private const string systemTypeBuildersNamespace = "Kwality.Datodia.Builders.System";
+    private const string generatedTypeBuildersNamespace = "Kwality.Datodia.Builders.Generated";
 
     private const string containerSource = """
                                            namespace Kwality.Datodia;
@@ -96,24 +101,37 @@ public sealed class ContainerGenerator : IIncrementalGenerator
                                            }
                                            """;
 
-    private readonly TypeBuilderDefinition[] builtInTypeBuilders =
+    private readonly TypeBuilderDefinition[] systemTypeBuilders =
     [
-        new("string", "Kwality.Datodia.Builders.StringTypeBuilder"),
-        new("System.Guid", "Kwality.Datodia.Builders.GuidTypeBuilder"),
-        new("bool", "Kwality.Datodia.Builders.BoolTypeBuilder"),
+        new("string", "StringTypeBuilder", systemTypeBuildersNamespace),
+        new("System.Guid", "GuidTypeBuilder", systemTypeBuildersNamespace),
+        new("bool", "BoolTypeBuilder", systemTypeBuildersNamespace),
     ];
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        var typeBuilders = context.SyntaxProvider
-                                  .CreateSyntaxProvider(TypeBuildersPredicate, TypeBuildersTransformation)
-                                  .Where(typeBuilder => typeBuilder is not null);
+        var typeBuildersProvider = context.SyntaxProvider
+                                          .CreateSyntaxProvider(TypeBuildersPredicate, TypeBuildersTransformation)
+                                          .Where(typeBuilder => typeBuilder is not null).Collect();
 
-        context.RegisterSourceOutput(typeBuilders.Collect(), GenerateContainerSource);
+        var recordsProvider = context.SyntaxProvider
+                                     .CreateSyntaxProvider(RecordsPredicate, RecordsDeclarationSyntaxTransformation)
+                                     .Where(typeBuilder => typeBuilder is not null);
+
+        var flattenedProvider = typeBuildersProvider.Combine(recordsProvider.Collect())
+                                                    .SelectMany((tuple, _) => tuple.Left.Concat(tuple.Right)).Collect();
+
+        context.RegisterSourceOutput(recordsProvider, GenerateRecordTypeBuilder);
+        context.RegisterSourceOutput(flattenedProvider, GenerateContainerSource);
 
         bool TypeBuildersPredicate(SyntaxNode node, CancellationToken _)
         {
             return node is ClassDeclarationSyntax { BaseList: not null };
+        }
+
+        bool RecordsPredicate(SyntaxNode node, CancellationToken _)
+        {
+            return node is RecordDeclarationSyntax;
         }
 
         TypeBuilderDefinition? TypeBuildersTransformation(GeneratorSyntaxContext ctx,
@@ -121,16 +139,38 @@ public sealed class ContainerGenerator : IIncrementalGenerator
         {
             var classDeclaration = (ClassDeclarationSyntax)ctx.Node;
             var symbol = ctx.SemanticModel.GetDeclaredSymbol(classDeclaration, cancellationToken) as INamedTypeSymbol;
-            var @interface = symbol?.GetInterface(typeBuilderFullName);
+            var @interface = symbol?.GetInterface(typeBuilderInterfaceFqName);
 
-            return symbol != null && @interface != null
-                       ? new(@interface.TypeArguments[0].ToDisplayString(), symbol.ToDisplayString()) : null;
+            return symbol != null && @interface != null ? new(@interface.TypeArguments[0].ToDisplayString(),
+                                                              @interface.ToDisplayString(),
+                                                              @interface.GetDisplayNamespace()) : null;
+        }
+
+        TypeBuilderDefinition? RecordsDeclarationSyntaxTransformation(GeneratorSyntaxContext ctx,
+            CancellationToken cancellationToken)
+        {
+            var recordDeclarationSymbol = (RecordDeclarationSyntax)ctx.Node;
+
+            if (ctx.SemanticModel.GetDeclaredSymbol(recordDeclarationSymbol, cancellationToken) is not INamedTypeSymbol
+                symbol)
+            {
+                return null;
+            }
+
+            var symbolNamespace = symbol.GetDisplayNamespace();
+            var fullTypeName = symbol.ToDisplayString();
+            var typeBuilderName = $"{symbol.Name}TypeBuilder";
+
+            var typeBuilderNamespace = string.IsNullOrEmpty(symbolNamespace) ? generatedTypeBuildersNamespace
+                                           : $"{generatedTypeBuildersNamespace}.{symbolNamespace}";
+
+            return new(fullTypeName, typeBuilderName, typeBuilderNamespace);
         }
 
         void GenerateContainerSource(SourceProductionContext ctx,
             ImmutableArray<TypeBuilderDefinition?> typeBuilderDefinitions)
         {
-            var allTypeBuilders = this.builtInTypeBuilders.Concat(typeBuilderDefinitions).ToImmutableArray();
+            var allTypeBuilders = this.systemTypeBuilders.Concat(typeBuilderDefinitions).ToImmutableArray();
             var typeBuildersInstance = CreateTypeBuilderInstances(allTypeBuilders);
             var typeBuilderMap = CreateTypeBuilderMap(allTypeBuilders);
 
@@ -139,6 +179,32 @@ public sealed class ContainerGenerator : IIncrementalGenerator
                                           .Replace("[[#[[TYPE_BUILDERS_MAP]]#]]", typeBuilderMap);
 
             ctx.AddSource("Container.g.cs", SourceText.From(generatedContainerSource, Encoding.UTF8));
+        }
+
+        void GenerateRecordTypeBuilder(SourceProductionContext ctx, TypeBuilderDefinition? definition)
+        {
+            if (definition == null)
+            {
+                return;
+            }
+
+            // @formatter:off
+            var typeBuilderSource = $$"""
+                                      namespace {{definition.Namespace}};
+
+                                      public sealed class {{definition.BuilderName}} : global::{{typeBuilderInterfaceNamespace}}.{{typeBuilderInterfaceName}}<global::{{definition.FullTypeName}}>
+                                      {
+                                          /// <inheritdoc />
+                                          public object Create()
+                                          {
+                                              return new global::{{definition.FullTypeName}}();
+                                          }
+                                      }
+                                      """;
+            // @formatter:on
+
+            ctx.AddSource($"{definition.Namespace}.{definition.BuilderName}.g.cs",
+                          SourceText.From(typeBuilderSource, Encoding.UTF8));
         }
     }
 
@@ -168,28 +234,5 @@ public sealed class ContainerGenerator : IIncrementalGenerator
         _ = sBuilder.AppendLine("    };");
 
         return sBuilder.ToString();
-    }
-
-    private sealed record TypeBuilderDefinition(string Type, string FullName)
-    {
-        public string Type
-        {
-            get;
-        } = Type;
-
-        public string FullName
-        {
-            get;
-        } = FullName;
-
-        public string FormatAsInstance()
-        {
-            return $"    private static readonly {this.FullName} {this.FullName.Replace(".", "_")}_Instance = new {this.FullName}();";
-        }
-
-        public string FormatAsMapEntry()
-        {
-            return $"        {{ typeof({this.Type}), {this.FullName.Replace(".", "_")}_Instance.Create }},";
-        }
     }
 }

@@ -22,7 +22,7 @@
 // ==                FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // ==                OTHER DEALINGS IN THE SOFTWARE.
 // =====================================================================================================================
-namespace Kwality.Datodia.Builders;
+namespace Kwality.Datodia.Builders.System;
 
 using Kwality.Datodia.Builders.Abstractions;
 

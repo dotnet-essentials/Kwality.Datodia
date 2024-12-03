@@ -22,68 +22,22 @@
 // ==                FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // ==                OTHER DEALINGS IN THE SOFTWARE.
 // =====================================================================================================================
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member - Reason: NOT Public.
-namespace Kwality.Datodia.Usage.Tests;
+namespace Kwality.Datodia.Builders.System;
 
-using Xunit;
+using Kwality.Datodia.Builders.Abstractions;
 
-public sealed partial class ContainerTests
+/// <summary>
+///     A builder that's used to create unique 'bool' instances.
+/// </summary>
+public sealed class BoolTypeBuilder : ITypeBuilder<bool>
 {
-    [Fact(DisplayName = "'Create<T>': When 'T' is a 'record' an instance of the 'record' is returned.")]
-    internal void Create_record_returns_a_record()
+    private bool value;
+
+    /// <inheritdoc />
+    public object Create()
     {
-        // ARRANGE.
-        var container = new Container();
+        this.value = !this.value;
 
-        // ACT.
-        var result = container.Create<Person>();
-
-        // ASSERT.
-        Assert.NotNull(result);
+        return this.value;
     }
-
-    [Fact(DisplayName = "'Register<T>': A custom builder is registered for 'T'.")]
-    internal void Register_custom_builder_uses_the_custom_factory()
-    {
-        // ARRANGE.
-        var container = new Container();
-
-        // ACT.
-        container.Register<string>(() => "Hello, World!");
-
-        // ASSERT.
-        Assert.Equal("Hello, World!", container.Create<string>());
-    }
-
-    [Fact(DisplayName = "'CreateMany<T>': Returns 3 elements by default.")]
-    internal void Create_multiple_returns_3_elements_by_default()
-    {
-        // ARRANGE.
-        var container = new Container();
-
-        // ACT.
-        var result = container.CreateMany<string>();
-
-        // ASSERT.
-        Assert.Equal(3, result.Count());
-    }
-
-    [Fact(DisplayName = "'CreateMany<T>': Returns predefined amount of elements.")]
-    internal void Create_multiple_returns_predefined_amount_of_elements()
-    {
-        // ARRANGE.
-        var container = new Container
-        {
-            RepeatCount = 10,
-        };
-
-        // ACT.
-        var result = container.CreateMany<string>();
-
-        // ASSERT.
-        Assert.Equal(10, result.Count());
-    }
-
-    internal sealed record Person;
 }
-
