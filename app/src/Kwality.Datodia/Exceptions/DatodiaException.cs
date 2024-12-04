@@ -24,9 +24,12 @@
 // =====================================================================================================================
 namespace Kwality.Datodia.Exceptions;
 
+using System.Diagnostics.CodeAnalysis;
+
 /// <summary>
 ///     Exception raised by Datodia.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public sealed class DatodiaException : Exception
 {
     /// <summary>

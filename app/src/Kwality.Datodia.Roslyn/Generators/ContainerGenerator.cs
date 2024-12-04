@@ -198,46 +198,25 @@ public sealed class ContainerGenerator : IIncrementalGenerator
                 return;
             }
 
-            if (!string.IsNullOrEmpty(definition.Namespace))
-            {
-                // @formatter:off
-                var typeBuilderSource = $$"""
-                                          namespace {{definition.Namespace}};
-                                          
-                                          [global::TypeBuilder]
-                                          public sealed class {{definition.BuilderName}} : global::{{typeBuilderInterfaceNamespace}}.{{typeBuilderInterfaceName}}<global::{{definition.FullTypeName}}>
+            // @formatter:off
+            var typeBuilderSource = $$"""
+                                      namespace {{definition.Namespace}};
+                                      
+                                      [global::TypeBuilder]
+                                      public sealed class {{definition.BuilderName}} : global::{{typeBuilderInterfaceNamespace}}.{{typeBuilderInterfaceName}}<global::{{definition.FullTypeName}}>
+                                      {
+                                          /// <inheritdoc />
+                                          public object Create()
                                           {
-                                              /// <inheritdoc />
-                                              public object Create()
-                                              {
-                                                  return new global::{{definition.FullTypeName}}();
-                                              }
+                                              return new global::{{definition.FullTypeName}}();
                                           }
-                                          """;
-                // @formatter:on
+                                      }
+                                      """;
+            // @formatter:on
 
-                ctx.AddSource($"{definition.Namespace}.{definition.BuilderName}.g.cs",
-                              SourceText.From(typeBuilderSource, Encoding.UTF8));
-            }
-            else
-            {
-                // @formatter:off
-                var typeBuilderSource = $$"""
-                                          [global::TypeBuilder]
-                                          public sealed class {{definition.BuilderName}} : global::{{typeBuilderInterfaceNamespace}}.{{typeBuilderInterfaceName}}<global::{{definition.FullTypeName}}>
-                                          {
-                                              /// <inheritdoc />
-                                              public object Create()
-                                              {
-                                                  return new global::{{definition.FullTypeName}}();
-                                              }
-                                          }
-                                          """;
-                // @formatter:on
-
-                ctx.AddSource($"{definition.Namespace}.{definition.BuilderName}.g.cs",
-                              SourceText.From(typeBuilderSource, Encoding.UTF8));
-            }
+            ctx.AddSource($"{definition.Namespace}.{definition.BuilderName}.g.cs",
+                          SourceText.From(typeBuilderSource, Encoding.UTF8));
+            
         }
     }
 
