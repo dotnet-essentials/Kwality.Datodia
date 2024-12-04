@@ -24,7 +24,7 @@
 // =====================================================================================================================
 namespace Kwality.Datodia.Roslyn.Generators.Models;
 
-internal sealed record TypeBuilderDefinition(string FullTypeName, string BuilderName, string Namespace)
+internal sealed record TypeBuilderDefinition(string FullTypeName, string BuilderName, string? Namespace)
 {
     public string FullTypeName
     {
@@ -36,12 +36,14 @@ internal sealed record TypeBuilderDefinition(string FullTypeName, string Builder
         get;
     } = BuilderName;
 
-    public string Namespace
+    public string? Namespace
     {
         get;
     } = Namespace;
 
-    private string FqName => $"{this.Namespace}.{this.BuilderName}";
+    private string FqName =>
+        !string.IsNullOrEmpty(this.Namespace) ? $"{this.Namespace}.{this.BuilderName}" : this.BuilderName;
+
     private string InstanceName => $"{this.FqName.Replace(".", "_")}_Instance";
 
     public string FormatAsInstance()
