@@ -198,6 +198,7 @@ public sealed class ContainerGenerator : IIncrementalGenerator
             var typeBuilderSource = $$"""
                                       namespace {{definition.Namespace}};
 
+                                      [global::TypeBuilder]
                                       public sealed class {{definition.BuilderName}} : global::{{typeBuilderInterfaceNamespace}}.{{typeBuilderInterfaceName}}<global::{{definition.FullTypeName}}>
                                       {
                                           /// <inheritdoc />
