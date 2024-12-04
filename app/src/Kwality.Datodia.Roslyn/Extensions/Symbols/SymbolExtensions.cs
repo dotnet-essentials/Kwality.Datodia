@@ -28,14 +28,11 @@ using Microsoft.CodeAnalysis;
 
 internal static class SymbolExtensions
 {
-    public static string GetDisplayNamespace(this ISymbol symbol)
+    public static string? GetFullNamespace(this ISymbol symbol)
     {
-        var symbolNamespace = symbol.ContainingNamespace.IsGlobalNamespace ? string.Empty
-                                  : symbol.ContainingNamespace.ToDisplayString();
+        var symbolDisplayName = symbol.ToDisplayString();
+        var nameParts = symbolDisplayName.Split('.');
 
-        var containingType = symbol.ContainingType != null ? symbol.ContainingType.ToDisplayString() : string.Empty;
-
-        return string.IsNullOrEmpty(containingType) ? symbolNamespace :
-               string.IsNullOrEmpty(symbolNamespace) ? containingType : $"{symbolNamespace}.{containingType}";
+        return nameParts.Length > 1 ? string.Join(".", nameParts.Take(nameParts.Length - 1)) : null;
     }
 }

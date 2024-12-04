@@ -152,7 +152,7 @@ public sealed class ContainerGenerator : IIncrementalGenerator
                 return null;
             }
 
-            var symbolNamespace = symbol.GetDisplayNamespace();
+            var symbolNamespace = symbol.GetFullNamespace();
             var typeBuilderNamespace = string.IsNullOrEmpty(symbolNamespace) ? string.Empty : symbolNamespace;
 
             return new(@interface.TypeArguments[0].ToDisplayString(), symbol.Name, typeBuilderNamespace);
@@ -169,12 +169,10 @@ public sealed class ContainerGenerator : IIncrementalGenerator
                 return null;
             }
 
-            var symbolNamespace = symbol.GetDisplayNamespace();
             var fullTypeName = symbol.ToDisplayString();
+            var symbolNamespace = symbol.GetFullNamespace();
+            var typeBuilderNamespace = string.IsNullOrEmpty(symbolNamespace) ? generatedTypeBuildersNamespace : $"{generatedTypeBuildersNamespace}.{symbolNamespace}";
             var typeBuilderName = $"{symbol.Name}TypeBuilder";
-
-            var typeBuilderNamespace = string.IsNullOrEmpty(symbolNamespace) ? generatedTypeBuildersNamespace
-                                           : $"{generatedTypeBuildersNamespace}.{symbolNamespace}";
 
             return new(fullTypeName, typeBuilderName, typeBuilderNamespace);
         }

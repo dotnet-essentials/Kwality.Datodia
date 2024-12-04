@@ -415,9 +415,110 @@ public sealed class ContainerGeneratorTests
         // Act & assert.
         sut.Verify([]);
     }
+    
+    [Fact(DisplayName = "A (nested, namespaced) 'ITypeBuilder<T>' with the 'marker' attribute is added to the container.")]
+    internal void Nested_namespaced_builders_with_the_marker_attribute_are_added_to_the_container()
+    {
+        // Arrange.
+        var sut = new SourceGeneratorVerifier<ContainerGenerator>
+        {
+            InputSources =
+            [
+                """
+                namespace Sample;
+                
+                public sealed class Builders
+                {
+                    [global::TypeBuilder]
+                    public sealed class FixedSquareTypeBuilder : Kwality.Datodia.Builders.Abstractions.ITypeBuilder<(int, int)>
+                    {
+                        public object Create()
+                        {
+                            return (0, 0);
+                        }
+                    }
+                }
+                """,
+            ],
+            ExpectedGeneratedSources =
+            [
+                markerAttributeSource,
+                """
+                namespace Kwality.Datodia;
 
-    [Fact(DisplayName = "An 'ITypeBuilder<T>' is added for a 'record' in the 'global' namespace.")]
-    internal void A_builder_is_generated_for_a_record_in_the_global_namespace()
+                using System;
+                using System.Collections.Generic;
+
+                using Kwality.Datodia.Exceptions;
+
+                /// <summary>
+                ///     Container used to create objects.
+                /// </summary>
+                public sealed class Container
+                {
+                    private static readonly Kwality.Datodia.Builders.System.StringTypeBuilder Kwality_Datodia_Builders_System_StringTypeBuilder_Instance = new Kwality.Datodia.Builders.System.StringTypeBuilder();
+                    private static readonly Kwality.Datodia.Builders.System.GuidTypeBuilder Kwality_Datodia_Builders_System_GuidTypeBuilder_Instance = new Kwality.Datodia.Builders.System.GuidTypeBuilder();
+                    private static readonly Kwality.Datodia.Builders.System.BoolTypeBuilder Kwality_Datodia_Builders_System_BoolTypeBuilder_Instance = new Kwality.Datodia.Builders.System.BoolTypeBuilder();
+                    private static readonly Sample.Builders.FixedSquareTypeBuilder Sample_Builders_FixedSquareTypeBuilder_Instance = new Sample.Builders.FixedSquareTypeBuilder();
+                
+                    private readonly Dictionary<Type, Func<object>> typeBuilders = new()
+                    {
+                        { typeof(string), Kwality_Datodia_Builders_System_StringTypeBuilder_Instance.Create },
+                        { typeof(System.Guid), Kwality_Datodia_Builders_System_GuidTypeBuilder_Instance.Create },
+                        { typeof(bool), Kwality_Datodia_Builders_System_BoolTypeBuilder_Instance.Create },
+                        { typeof((int, int)), Sample_Builders_FixedSquareTypeBuilder_Instance.Create },
+                    };
+                
+                    /// <summary>
+                    ///     The total number of elements to create when using <see cref="CreateMany{T}" />.
+                    /// </summary>
+                    /// <remarks>Defaults to 3.</remarks>
+                    public int RepeatCount{ get; set; } = 3;
+                
+                    /// <summary>
+                    ///     Create an instance of T.
+                    /// </summary>
+                    /// <typeparam name="T">The type to create.</typeparam>
+                    /// <returns>An instance of T.</returns>
+                    /// <exception cref="DatodiaException">An instance of T couldn't be created.</exception>
+                    public T Create<T>()
+                    {
+                        if (this.typeBuilders.TryGetValue(typeof(T), out var builder)) return (T)builder();
+                
+                        throw new DatodiaException($"No resolver registered for type '{typeof(T)}'.");
+                    }
+                
+                    /// <summary>
+                    ///     Create multiple instances of T.
+                    /// </summary>
+                    /// <typeparam name="T">The type to create.</typeparam>
+                    /// <returns>A collection of T elements.</returns>
+                    /// <exception cref="DatodiaException">An instance of T couldn't be created.</exception>
+                    public IEnumerable<T> CreateMany<T>()
+                    {
+                        for (var i = 0; i < this.RepeatCount; i++) yield return this.Create<T>();
+                    }
+                
+                    /// <summary>
+                    ///     Register a custom builder that replaces the built-in builder for T.
+                    /// </summary>
+                    /// <param name="builder">The builder used to create instances of T.</param>
+                    /// <typeparam name="T">The type the builder can create.</typeparam>
+                    public void Register<T>(Func<object> builder)
+                    {
+                        this.typeBuilders[typeof(T)] = builder;
+                    }
+                }
+                """,
+            ],
+        };
+
+        // Act & assert.
+        sut.Verify([]);
+    }
+
+    [Fact(DisplayName = "An 'ITypeBuilder<T>' is generated for a 'record'.")]
+    internal void Builder_is_generated_for_records()
     {
         // Arrange.
         var sut = new SourceGeneratorVerifier<ContainerGenerator>
@@ -513,8 +614,8 @@ public sealed class ContainerGeneratorTests
         sut.Verify([]);
     }
 
-    [Fact(DisplayName = "An 'ITypeBuilder<T>' is added for a 'record' in a namespace.")]
-    internal void A_builder_is_generated_for_a_record_in_a_namespace()
+    [Fact(DisplayName = "An 'ITypeBuilder<T>' is generated for a (namespaced) 'record'.")]
+    internal void Builder_is_generated_for_namespaced_records()
     {
         // Arrange.
         var sut = new SourceGeneratorVerifier<ContainerGenerator>
@@ -607,6 +708,218 @@ public sealed class ContainerGeneratorTests
                     public object Create()
                     {
                         return new global::Samples.Person();
+                    }
+                }
+                """,
+            ],
+        };
+
+        // Act & assert.
+        sut.Verify([]);
+    }
+    
+    [Fact(DisplayName = "An 'ITypeBuilder<T>' is generated for a (nested) 'record'.")]
+    internal void Builder_is_generated_for_nested_records()
+    {
+        // Arrange.
+        var sut = new SourceGeneratorVerifier<ContainerGenerator>
+        {
+            InputSources =
+            [
+                """
+                public sealed class Models
+                {
+                    public sealed record Person;
+                }
+                """,
+            ],
+            ExpectedGeneratedSources =
+            [
+                markerAttributeSource,
+                """
+                namespace Kwality.Datodia;
+
+                using System;
+                using System.Collections.Generic;
+
+                using Kwality.Datodia.Exceptions;
+
+                /// <summary>
+                ///     Container used to create objects.
+                /// </summary>
+                public sealed class Container
+                {
+                    private static readonly Kwality.Datodia.Builders.System.StringTypeBuilder Kwality_Datodia_Builders_System_StringTypeBuilder_Instance = new Kwality.Datodia.Builders.System.StringTypeBuilder();
+                    private static readonly Kwality.Datodia.Builders.System.GuidTypeBuilder Kwality_Datodia_Builders_System_GuidTypeBuilder_Instance = new Kwality.Datodia.Builders.System.GuidTypeBuilder();
+                    private static readonly Kwality.Datodia.Builders.System.BoolTypeBuilder Kwality_Datodia_Builders_System_BoolTypeBuilder_Instance = new Kwality.Datodia.Builders.System.BoolTypeBuilder();
+                    private static readonly Kwality.Datodia.Builders.Generated.Models.PersonTypeBuilder Kwality_Datodia_Builders_Generated_Models_PersonTypeBuilder_Instance = new Kwality.Datodia.Builders.Generated.Models.PersonTypeBuilder();
+
+                    private readonly Dictionary<Type, Func<object>> typeBuilders = new()
+                    {
+                        { typeof(string), Kwality_Datodia_Builders_System_StringTypeBuilder_Instance.Create },
+                        { typeof(System.Guid), Kwality_Datodia_Builders_System_GuidTypeBuilder_Instance.Create },
+                        { typeof(bool), Kwality_Datodia_Builders_System_BoolTypeBuilder_Instance.Create },
+                        { typeof(Models.Person), Kwality_Datodia_Builders_Generated_Models_PersonTypeBuilder_Instance.Create },
+                    };
+                
+                    /// <summary>
+                    ///     The total number of elements to create when using <see cref="CreateMany{T}" />.
+                    /// </summary>
+                    /// <remarks>Defaults to 3.</remarks>
+                    public int RepeatCount{ get; set; } = 3;
+                
+                    /// <summary>
+                    ///     Create an instance of T.
+                    /// </summary>
+                    /// <typeparam name="T">The type to create.</typeparam>
+                    /// <returns>An instance of T.</returns>
+                    /// <exception cref="DatodiaException">An instance of T couldn't be created.</exception>
+                    public T Create<T>()
+                    {
+                        if (this.typeBuilders.TryGetValue(typeof(T), out var builder)) return (T)builder();
+                
+                        throw new DatodiaException($"No resolver registered for type '{typeof(T)}'.");
+                    }
+                
+                    /// <summary>
+                    ///     Create multiple instances of T.
+                    /// </summary>
+                    /// <typeparam name="T">The type to create.</typeparam>
+                    /// <returns>A collection of T elements.</returns>
+                    /// <exception cref="DatodiaException">An instance of T couldn't be created.</exception>
+                    public IEnumerable<T> CreateMany<T>()
+                    {
+                        for (var i = 0; i < this.RepeatCount; i++) yield return this.Create<T>();
+                    }
+                
+                    /// <summary>
+                    ///     Register a custom builder that replaces the built-in builder for T.
+                    /// </summary>
+                    /// <param name="builder">The builder used to create instances of T.</param>
+                    /// <typeparam name="T">The type the builder can create.</typeparam>
+                    public void Register<T>(Func<object> builder)
+                    {
+                        this.typeBuilders[typeof(T)] = builder;
+                    }
+                }
+                """,
+                """
+                namespace Kwality.Datodia.Builders.Generated.Models;
+                
+                [global::TypeBuilder]
+                public sealed class PersonTypeBuilder : global::Kwality.Datodia.Builders.Abstractions.ITypeBuilder<global::Models.Person>
+                {
+                    /// <inheritdoc />
+                    public object Create()
+                    {
+                        return new global::Models.Person();
+                    }
+                }
+                """,
+            ],
+        };
+
+        // Act & assert.
+        sut.Verify([]);
+    }
+    
+    [Fact(DisplayName = "An 'ITypeBuilder<T>' is generated for a (nested, namespaced) 'record'.")]
+    internal void Builder_is_generated_for_nested_namespaced_records()
+    {
+        // Arrange.
+        var sut = new SourceGeneratorVerifier<ContainerGenerator>
+        {
+            InputSources =
+            [
+                """
+                namespace Sample;
+                
+                public sealed class Models
+                {
+                    public sealed record Person;
+                }
+                """,
+            ],
+            ExpectedGeneratedSources =
+            [
+                markerAttributeSource,
+                """
+                namespace Kwality.Datodia;
+
+                using System;
+                using System.Collections.Generic;
+
+                using Kwality.Datodia.Exceptions;
+
+                /// <summary>
+                ///     Container used to create objects.
+                /// </summary>
+                public sealed class Container
+                {
+                    private static readonly Kwality.Datodia.Builders.System.StringTypeBuilder Kwality_Datodia_Builders_System_StringTypeBuilder_Instance = new Kwality.Datodia.Builders.System.StringTypeBuilder();
+                    private static readonly Kwality.Datodia.Builders.System.GuidTypeBuilder Kwality_Datodia_Builders_System_GuidTypeBuilder_Instance = new Kwality.Datodia.Builders.System.GuidTypeBuilder();
+                    private static readonly Kwality.Datodia.Builders.System.BoolTypeBuilder Kwality_Datodia_Builders_System_BoolTypeBuilder_Instance = new Kwality.Datodia.Builders.System.BoolTypeBuilder();
+                    private static readonly Kwality.Datodia.Builders.Generated.Sample.Models.PersonTypeBuilder Kwality_Datodia_Builders_Generated_Sample_Models_PersonTypeBuilder_Instance = new Kwality.Datodia.Builders.Generated.Sample.Models.PersonTypeBuilder();
+                
+                    private readonly Dictionary<Type, Func<object>> typeBuilders = new()
+                    {
+                        { typeof(string), Kwality_Datodia_Builders_System_StringTypeBuilder_Instance.Create },
+                        { typeof(System.Guid), Kwality_Datodia_Builders_System_GuidTypeBuilder_Instance.Create },
+                        { typeof(bool), Kwality_Datodia_Builders_System_BoolTypeBuilder_Instance.Create },
+                        { typeof(Sample.Models.Person), Kwality_Datodia_Builders_Generated_Sample_Models_PersonTypeBuilder_Instance.Create },
+                    };
+                
+                    /// <summary>
+                    ///     The total number of elements to create when using <see cref="CreateMany{T}" />.
+                    /// </summary>
+                    /// <remarks>Defaults to 3.</remarks>
+                    public int RepeatCount{ get; set; } = 3;
+                
+                    /// <summary>
+                    ///     Create an instance of T.
+                    /// </summary>
+                    /// <typeparam name="T">The type to create.</typeparam>
+                    /// <returns>An instance of T.</returns>
+                    /// <exception cref="DatodiaException">An instance of T couldn't be created.</exception>
+                    public T Create<T>()
+                    {
+                        if (this.typeBuilders.TryGetValue(typeof(T), out var builder)) return (T)builder();
+                
+                        throw new DatodiaException($"No resolver registered for type '{typeof(T)}'.");
+                    }
+                
+                    /// <summary>
+                    ///     Create multiple instances of T.
+                    /// </summary>
+                    /// <typeparam name="T">The type to create.</typeparam>
+                    /// <returns>A collection of T elements.</returns>
+                    /// <exception cref="DatodiaException">An instance of T couldn't be created.</exception>
+                    public IEnumerable<T> CreateMany<T>()
+                    {
+                        for (var i = 0; i < this.RepeatCount; i++) yield return this.Create<T>();
+                    }
+                
+                    /// <summary>
+                    ///     Register a custom builder that replaces the built-in builder for T.
+                    /// </summary>
+                    /// <param name="builder">The builder used to create instances of T.</param>
+                    /// <typeparam name="T">The type the builder can create.</typeparam>
+                    public void Register<T>(Func<object> builder)
+                    {
+                        this.typeBuilders[typeof(T)] = builder;
+                    }
+                }
+                """,
+                """
+                namespace Kwality.Datodia.Builders.Generated.Sample.Models;
+                
+                [global::TypeBuilder]
+                public sealed class PersonTypeBuilder : global::Kwality.Datodia.Builders.Abstractions.ITypeBuilder<global::Sample.Models.Person>
+                {
+                    /// <inheritdoc />
+                    public object Create()
+                    {
+                        return new global::Sample.Models.Person();
                     }
                 }
                 """,
