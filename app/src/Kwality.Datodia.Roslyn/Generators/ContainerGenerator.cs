@@ -117,7 +117,7 @@ public sealed class ContainerGenerator : IIncrementalGenerator
 
         var typeBuildersProvider = context.SyntaxProvider
                                           .CreateSyntaxProvider(TypeBuildersPredicate, TypeBuildersTransformation)
-                                          .Where(typeBuilder => typeBuilder is not null).WithTrackingName("Classes")
+                                          .Where(typeBuilder => typeBuilder is not null)
                                           .Collect();
 
         var recordsProvider = context.SyntaxProvider
@@ -132,7 +132,7 @@ public sealed class ContainerGenerator : IIncrementalGenerator
 
         bool TypeBuildersPredicate(SyntaxNode node, CancellationToken _)
         {
-            return node is ClassDeclarationSyntax { BaseList: not null };
+            return node is ClassDeclarationSyntax { AttributeLists.Count: > 0 };
         }
 
         bool RecordsPredicate(SyntaxNode node, CancellationToken _)
@@ -147,9 +147,15 @@ public sealed class ContainerGenerator : IIncrementalGenerator
             var symbol = ctx.SemanticModel.GetDeclaredSymbol(classDeclaration, cancellationToken) as INamedTypeSymbol;
             var @interface = symbol?.GetInterface(typeBuilderInterfaceFqName);
 
-            return symbol != null && @interface != null ? new(@interface.TypeArguments[0].ToDisplayString(),
-                                                              @interface.ToDisplayString(),
-                                                              @interface.GetDisplayNamespace()) : null;
+            if (symbol == null || @interface == null)
+            {
+                return null;
+            }
+
+            var symbolNamespace = symbol.GetDisplayNamespace();
+            var typeBuilderNamespace = string.IsNullOrEmpty(symbolNamespace) ? string.Empty : symbolNamespace;
+
+            return new(@interface.TypeArguments[0].ToDisplayString(), symbol.Name, typeBuilderNamespace);
         }
 
         TypeBuilderDefinition? RecordsDeclarationSyntaxTransformation(GeneratorSyntaxContext ctx,
@@ -194,24 +200,46 @@ public sealed class ContainerGenerator : IIncrementalGenerator
                 return;
             }
 
-            // @formatter:off
-            var typeBuilderSource = $$"""
-                                      namespace {{definition.Namespace}};
-
-                                      [global::TypeBuilder]
-                                      public sealed class {{definition.BuilderName}} : global::{{typeBuilderInterfaceNamespace}}.{{typeBuilderInterfaceName}}<global::{{definition.FullTypeName}}>
-                                      {
-                                          /// <inheritdoc />
-                                          public object Create()
+            if (!string.IsNullOrEmpty(definition.Namespace))
+            {
+                // @formatter:off
+                var typeBuilderSource = $$"""
+                                          namespace {{definition.Namespace}};
+                                          
+                                          [global::TypeBuilder]
+                                          public sealed class {{definition.BuilderName}} : global::{{typeBuilderInterfaceNamespace}}.{{typeBuilderInterfaceName}}<global::{{definition.FullTypeName}}>
                                           {
-                                              return new global::{{definition.FullTypeName}}();
+                                              /// <inheritdoc />
+                                              public object Create()
+                                              {
+                                                  return new global::{{definition.FullTypeName}}();
+                                              }
                                           }
-                                      }
-                                      """;
-            // @formatter:on
+                                          """;
+                // @formatter:on
 
-            ctx.AddSource($"{definition.Namespace}.{definition.BuilderName}.g.cs",
-                          SourceText.From(typeBuilderSource, Encoding.UTF8));
+                ctx.AddSource($"{definition.Namespace}.{definition.BuilderName}.g.cs",
+                              SourceText.From(typeBuilderSource, Encoding.UTF8));
+            }
+            else
+            {
+                // @formatter:off
+                var typeBuilderSource = $$"""
+                                          [global::TypeBuilder]
+                                          public sealed class {{definition.BuilderName}} : global::{{typeBuilderInterfaceNamespace}}.{{typeBuilderInterfaceName}}<global::{{definition.FullTypeName}}>
+                                          {
+                                              /// <inheritdoc />
+                                              public object Create()
+                                              {
+                                                  return new global::{{definition.FullTypeName}}();
+                                              }
+                                          }
+                                          """;
+                // @formatter:on
+
+                ctx.AddSource($"{definition.Namespace}.{definition.BuilderName}.g.cs",
+                              SourceText.From(typeBuilderSource, Encoding.UTF8));
+            }
         }
     }
 

@@ -43,6 +43,20 @@ public sealed partial class ContainerTests
         // ASSERT.
         _ = result.Should().NotBeNull();
     }
+    
+    [Fact(DisplayName = "'Create<T>': An instance of a type created by a custom 'builder' is returned.")]
+    internal void Create_type_defined_by_custom_builder()
+    {
+        // ARRANGE.
+        var container = new Container();
+
+        // ACT.
+        var result = container.Create<(int, int)>();
+
+        // ASSERT.
+        _ = result.Should().NotBeNull();
+        _ = result.Should().Be((10, 10));
+    }
 
     [Fact(DisplayName = "'Register<T>': A custom builder is registered for 'T'.")]
     internal void Register_custom_builder_uses_the_custom_factory()

@@ -24,6 +24,10 @@
 // =====================================================================================================================
 namespace Kwality.Datodia.Tests.Verifiers;
 
+using System.Collections;
+using System.Collections.Immutable;
+using System.Reflection;
+
 using FluentAssertions;
 
 using Kwality.Datodia.Tests.Extensions;
@@ -41,7 +45,7 @@ internal sealed class SourceGeneratorVerifier<TGenerator> : RoslynComponentVerif
         init;
     }
 
-    public void Verify()
+    public void Verify(string[] trackingNames)
     {
         // Arrange.
         var compilation = CreateCompilation();
@@ -58,12 +62,115 @@ internal sealed class SourceGeneratorVerifier<TGenerator> : RoslynComponentVerif
                                               .RunGenerators(compilationClone).GetRunResult();
 
         // Assert.
-        _ = compilation.GetDiagnostics().Where(diagnostic => diagnostic.IsError()).Should().BeEmpty();
         _ = diagnostics.Should().BeEmpty();
 
         _ = result.SyntaxTrees.Select(x => x.ToString()).Should()
                   .HaveCount(compilation.SyntaxTrees.Count() + (this.ExpectedGeneratedSources?.Length ?? 0));
 
         _ = result.SyntaxTrees.Select(x => x.ToString()).Should().Contain(this.ExpectedGeneratedSources ?? []);
+    }
+
+    private static void CompareResults(GeneratorDriverRunResult r1, GeneratorDriverRunResult r2, string[] trackingNames)
+    {
+        var trackedSteps1 = GetTrackedSteps(r1, trackingNames);
+        var trackedSteps2 = GetTrackedSteps(r2, trackingNames);
+        trackedSteps1.Should().NotBeEmpty();
+        trackedSteps1.Should().HaveSameCount(trackedSteps2).And.ContainKeys(trackedSteps2.Keys);
+
+        foreach ((var trackingName, var runSteps1) in trackedSteps1)
+        {
+            var runSteps2 = trackedSteps2[trackingName];
+            AssertEqual(runSteps1, runSteps2, trackingName);
+        }
+
+        return;
+
+        static Dictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> GetTrackedSteps(
+            GeneratorDriverRunResult runResult, string[] trackingNames)
+        {
+            return runResult.Results[0].TrackedSteps.Where(step => trackingNames.Contains(step.Key))
+                            .ToDictionary(x => x.Key, x => x.Value);
+        }
+    }
+
+    private static void AssertEqual(ImmutableArray<IncrementalGeneratorRunStep> runSteps1,
+        ImmutableArray<IncrementalGeneratorRunStep> runSteps2, string stepName)
+    {
+        runSteps1.Should().HaveSameCount(runSteps2);
+
+        for (var i = 0; i < runSteps1.Length; i++)
+        {
+            var runStep1 = runSteps1[i];
+            var runStep2 = runSteps2[i];
+
+            // The outputs should be equal between different runs
+            IEnumerable<object> outputs1 = runStep1.Outputs.Select(x => x.Value);
+            IEnumerable<object> outputs2 = runStep2.Outputs.Select(x => x.Value);
+            outputs1.Should().Equal(outputs2, $"because {stepName} should produce cacheable outputs");
+
+            // Therefore, on the second run the results should always be cached or unchanged!
+            // - Unchanged is when the _input_ has changed, but the output hasn't
+            // - Cached is when the the input has not changed, so the cached output is used 
+            runStep2.Outputs.Should()
+                    .OnlyContain(x => x.Reason == IncrementalStepRunReason.Cached || x.Reason == IncrementalStepRunReason.Unchanged,
+                                 $"{stepName} expected to have reason {IncrementalStepRunReason.Cached} or {
+                                     IncrementalStepRunReason.Unchanged}");
+
+            // Make sure we're not using anything we shouldn't
+            AssertObjectGraph(runStep1, stepName);
+        }
+    }
+
+    private static void AssertObjectGraph(IncrementalGeneratorRunStep runStep, string stepName)
+    {
+        // Including the stepName in error messages to make it easy to isolate issues
+        var because = $"{stepName} shouldn't contain banned symbols";
+        var visited = new HashSet<object>();
+
+        // Check all of the outputs - probably overkill, but why not
+        foreach ((var obj, _) in runStep.Outputs)
+        {
+            Visit(obj);
+        }
+
+        void Visit(object node)
+        {
+            // If we've already seen this object, or it's null, stop.
+            if (node is null || !visited.Add(node))
+            {
+                return;
+            }
+
+            // Make sure it's not a banned type
+            node.Should().NotBeOfType<Compilation>(because).And.NotBeOfType<ISymbol>(because).And
+                .NotBeOfType<SyntaxNode>(because);
+
+            // Examine the object
+            var type = node.GetType();
+
+            if (type.IsPrimitive || type.IsEnum || type == typeof(string))
+            {
+                return;
+            }
+
+            // If the object is a collection, check each of the values
+            if (node is IEnumerable collection and not string)
+            {
+                foreach (var element in collection)
+                {
+                    // recursively check each element in the collection
+                    Visit(element);
+                }
+
+                return;
+            }
+
+            // Recursively check each field in the object
+            foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            {
+                var fieldValue = field.GetValue(node);
+                Visit(fieldValue);
+            }
+        }
     }
 }

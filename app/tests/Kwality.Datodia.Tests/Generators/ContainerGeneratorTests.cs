@@ -120,7 +120,300 @@ public sealed class ContainerGeneratorTests
         };
 
         // Act & assert.
-        sut.Verify();
+        sut.Verify([]);
+    }
+    
+    [Fact(DisplayName = "An 'ITypeBuilder<T>' with the 'marker' attribute is added to the container.")]
+    internal void Builders_with_the_marker_attribute_are_added_to_the_container()
+    {
+        // Arrange.
+        var sut = new SourceGeneratorVerifier<ContainerGenerator>
+        {
+            InputSources =
+            [
+                """
+                [global::TypeBuilder]
+                public sealed class FixedSquareTypeBuilder : Kwality.Datodia.Builders.Abstractions.ITypeBuilder<(int, int)>
+                {
+                    public object Create()
+                    {
+                        return (0, 0);
+                    }
+                }
+                """,
+            ],
+            ExpectedGeneratedSources =
+            [
+                markerAttributeSource,
+                """
+                namespace Kwality.Datodia;
+
+                using System;
+                using System.Collections.Generic;
+
+                using Kwality.Datodia.Exceptions;
+
+                /// <summary>
+                ///     Container used to create objects.
+                /// </summary>
+                public sealed class Container
+                {
+                    private static readonly Kwality.Datodia.Builders.System.StringTypeBuilder Kwality_Datodia_Builders_System_StringTypeBuilder_Instance = new Kwality.Datodia.Builders.System.StringTypeBuilder();
+                    private static readonly Kwality.Datodia.Builders.System.GuidTypeBuilder Kwality_Datodia_Builders_System_GuidTypeBuilder_Instance = new Kwality.Datodia.Builders.System.GuidTypeBuilder();
+                    private static readonly Kwality.Datodia.Builders.System.BoolTypeBuilder Kwality_Datodia_Builders_System_BoolTypeBuilder_Instance = new Kwality.Datodia.Builders.System.BoolTypeBuilder();
+                    private static readonly FixedSquareTypeBuilder FixedSquareTypeBuilder_Instance = new FixedSquareTypeBuilder();
+                
+                    private readonly Dictionary<Type, Func<object>> typeBuilders = new()
+                    {
+                        { typeof(string), Kwality_Datodia_Builders_System_StringTypeBuilder_Instance.Create },
+                        { typeof(System.Guid), Kwality_Datodia_Builders_System_GuidTypeBuilder_Instance.Create },
+                        { typeof(bool), Kwality_Datodia_Builders_System_BoolTypeBuilder_Instance.Create },
+                        { typeof((int, int)), FixedSquareTypeBuilder_Instance.Create },
+                    };
+                
+                    /// <summary>
+                    ///     The total number of elements to create when using <see cref="CreateMany{T}" />.
+                    /// </summary>
+                    /// <remarks>Defaults to 3.</remarks>
+                    public int RepeatCount{ get; set; } = 3;
+                
+                    /// <summary>
+                    ///     Create an instance of T.
+                    /// </summary>
+                    /// <typeparam name="T">The type to create.</typeparam>
+                    /// <returns>An instance of T.</returns>
+                    /// <exception cref="DatodiaException">An instance of T couldn't be created.</exception>
+                    public T Create<T>()
+                    {
+                        if (this.typeBuilders.TryGetValue(typeof(T), out var builder)) return (T)builder();
+                
+                        throw new DatodiaException($"No resolver registered for type '{typeof(T)}'.");
+                    }
+                
+                    /// <summary>
+                    ///     Create multiple instances of T.
+                    /// </summary>
+                    /// <typeparam name="T">The type to create.</typeparam>
+                    /// <returns>A collection of T elements.</returns>
+                    /// <exception cref="DatodiaException">An instance of T couldn't be created.</exception>
+                    public IEnumerable<T> CreateMany<T>()
+                    {
+                        for (var i = 0; i < this.RepeatCount; i++) yield return this.Create<T>();
+                    }
+                
+                    /// <summary>
+                    ///     Register a custom builder that replaces the built-in builder for T.
+                    /// </summary>
+                    /// <param name="builder">The builder used to create instances of T.</param>
+                    /// <typeparam name="T">The type the builder can create.</typeparam>
+                    public void Register<T>(Func<object> builder)
+                    {
+                        this.typeBuilders[typeof(T)] = builder;
+                    }
+                }
+                """,
+            ],
+        };
+
+        // Act & assert.
+        sut.Verify([]);
+    }
+    
+    [Fact(DisplayName = "A (namespaced) 'ITypeBuilder<T>' with the 'marker' attribute is added to the container.")]
+    internal void Namespaced_builders_with_the_marker_attribute_are_added_to_the_container()
+    {
+        // Arrange.
+        var sut = new SourceGeneratorVerifier<ContainerGenerator>
+        {
+            InputSources =
+            [
+                """
+                namespace Builders;
+
+                [global::TypeBuilder]
+                public sealed class FixedSquareTypeBuilder : Kwality.Datodia.Builders.Abstractions.ITypeBuilder<(int, int)>
+                {
+                    public object Create()
+                    {
+                        return (0, 0);
+                    }
+                }
+                """,
+            ],
+            ExpectedGeneratedSources =
+            [
+                markerAttributeSource,
+                """
+                namespace Kwality.Datodia;
+
+                using System;
+                using System.Collections.Generic;
+
+                using Kwality.Datodia.Exceptions;
+
+                /// <summary>
+                ///     Container used to create objects.
+                /// </summary>
+                public sealed class Container
+                {
+                    private static readonly Kwality.Datodia.Builders.System.StringTypeBuilder Kwality_Datodia_Builders_System_StringTypeBuilder_Instance = new Kwality.Datodia.Builders.System.StringTypeBuilder();
+                    private static readonly Kwality.Datodia.Builders.System.GuidTypeBuilder Kwality_Datodia_Builders_System_GuidTypeBuilder_Instance = new Kwality.Datodia.Builders.System.GuidTypeBuilder();
+                    private static readonly Kwality.Datodia.Builders.System.BoolTypeBuilder Kwality_Datodia_Builders_System_BoolTypeBuilder_Instance = new Kwality.Datodia.Builders.System.BoolTypeBuilder();
+                    private static readonly Builders.FixedSquareTypeBuilder Builders_FixedSquareTypeBuilder_Instance = new Builders.FixedSquareTypeBuilder();
+                
+                    private readonly Dictionary<Type, Func<object>> typeBuilders = new()
+                    {
+                        { typeof(string), Kwality_Datodia_Builders_System_StringTypeBuilder_Instance.Create },
+                        { typeof(System.Guid), Kwality_Datodia_Builders_System_GuidTypeBuilder_Instance.Create },
+                        { typeof(bool), Kwality_Datodia_Builders_System_BoolTypeBuilder_Instance.Create },
+                        { typeof((int, int)), Builders_FixedSquareTypeBuilder_Instance.Create },
+                    };
+                
+                    /// <summary>
+                    ///     The total number of elements to create when using <see cref="CreateMany{T}" />.
+                    /// </summary>
+                    /// <remarks>Defaults to 3.</remarks>
+                    public int RepeatCount{ get; set; } = 3;
+                
+                    /// <summary>
+                    ///     Create an instance of T.
+                    /// </summary>
+                    /// <typeparam name="T">The type to create.</typeparam>
+                    /// <returns>An instance of T.</returns>
+                    /// <exception cref="DatodiaException">An instance of T couldn't be created.</exception>
+                    public T Create<T>()
+                    {
+                        if (this.typeBuilders.TryGetValue(typeof(T), out var builder)) return (T)builder();
+                
+                        throw new DatodiaException($"No resolver registered for type '{typeof(T)}'.");
+                    }
+                
+                    /// <summary>
+                    ///     Create multiple instances of T.
+                    /// </summary>
+                    /// <typeparam name="T">The type to create.</typeparam>
+                    /// <returns>A collection of T elements.</returns>
+                    /// <exception cref="DatodiaException">An instance of T couldn't be created.</exception>
+                    public IEnumerable<T> CreateMany<T>()
+                    {
+                        for (var i = 0; i < this.RepeatCount; i++) yield return this.Create<T>();
+                    }
+                
+                    /// <summary>
+                    ///     Register a custom builder that replaces the built-in builder for T.
+                    /// </summary>
+                    /// <param name="builder">The builder used to create instances of T.</param>
+                    /// <typeparam name="T">The type the builder can create.</typeparam>
+                    public void Register<T>(Func<object> builder)
+                    {
+                        this.typeBuilders[typeof(T)] = builder;
+                    }
+                }
+                """,
+            ],
+        };
+
+        // Act & assert.
+        sut.Verify([]);
+    }
+    
+    [Fact(DisplayName = "A (nested) 'ITypeBuilder<T>' with the 'marker' attribute is added to the container.")]
+    internal void Nested_builders_with_the_marker_attribute_are_added_to_the_container()
+    {
+        // Arrange.
+        var sut = new SourceGeneratorVerifier<ContainerGenerator>
+        {
+            InputSources =
+            [
+                """
+                public sealed class Builders
+                {
+                    [global::TypeBuilder]
+                    public sealed class FixedSquareTypeBuilder : Kwality.Datodia.Builders.Abstractions.ITypeBuilder<(int, int)>
+                    {
+                        public object Create()
+                        {
+                            return (0, 0);
+                        }
+                    }
+                }
+                """,
+            ],
+            ExpectedGeneratedSources =
+            [
+                markerAttributeSource,
+                """
+                namespace Kwality.Datodia;
+
+                using System;
+                using System.Collections.Generic;
+
+                using Kwality.Datodia.Exceptions;
+
+                /// <summary>
+                ///     Container used to create objects.
+                /// </summary>
+                public sealed class Container
+                {
+                    private static readonly Kwality.Datodia.Builders.System.StringTypeBuilder Kwality_Datodia_Builders_System_StringTypeBuilder_Instance = new Kwality.Datodia.Builders.System.StringTypeBuilder();
+                    private static readonly Kwality.Datodia.Builders.System.GuidTypeBuilder Kwality_Datodia_Builders_System_GuidTypeBuilder_Instance = new Kwality.Datodia.Builders.System.GuidTypeBuilder();
+                    private static readonly Kwality.Datodia.Builders.System.BoolTypeBuilder Kwality_Datodia_Builders_System_BoolTypeBuilder_Instance = new Kwality.Datodia.Builders.System.BoolTypeBuilder();
+                    private static readonly Builders.FixedSquareTypeBuilder Builders_FixedSquareTypeBuilder_Instance = new Builders.FixedSquareTypeBuilder();
+                
+                    private readonly Dictionary<Type, Func<object>> typeBuilders = new()
+                    {
+                        { typeof(string), Kwality_Datodia_Builders_System_StringTypeBuilder_Instance.Create },
+                        { typeof(System.Guid), Kwality_Datodia_Builders_System_GuidTypeBuilder_Instance.Create },
+                        { typeof(bool), Kwality_Datodia_Builders_System_BoolTypeBuilder_Instance.Create },
+                        { typeof((int, int)), Builders_FixedSquareTypeBuilder_Instance.Create },
+                    };
+                
+                    /// <summary>
+                    ///     The total number of elements to create when using <see cref="CreateMany{T}" />.
+                    /// </summary>
+                    /// <remarks>Defaults to 3.</remarks>
+                    public int RepeatCount{ get; set; } = 3;
+                
+                    /// <summary>
+                    ///     Create an instance of T.
+                    /// </summary>
+                    /// <typeparam name="T">The type to create.</typeparam>
+                    /// <returns>An instance of T.</returns>
+                    /// <exception cref="DatodiaException">An instance of T couldn't be created.</exception>
+                    public T Create<T>()
+                    {
+                        if (this.typeBuilders.TryGetValue(typeof(T), out var builder)) return (T)builder();
+                
+                        throw new DatodiaException($"No resolver registered for type '{typeof(T)}'.");
+                    }
+                
+                    /// <summary>
+                    ///     Create multiple instances of T.
+                    /// </summary>
+                    /// <typeparam name="T">The type to create.</typeparam>
+                    /// <returns>A collection of T elements.</returns>
+                    /// <exception cref="DatodiaException">An instance of T couldn't be created.</exception>
+                    public IEnumerable<T> CreateMany<T>()
+                    {
+                        for (var i = 0; i < this.RepeatCount; i++) yield return this.Create<T>();
+                    }
+                
+                    /// <summary>
+                    ///     Register a custom builder that replaces the built-in builder for T.
+                    /// </summary>
+                    /// <param name="builder">The builder used to create instances of T.</param>
+                    /// <typeparam name="T">The type the builder can create.</typeparam>
+                    public void Register<T>(Func<object> builder)
+                    {
+                        this.typeBuilders[typeof(T)] = builder;
+                    }
+                }
+                """,
+            ],
+        };
+
+        // Act & assert.
+        sut.Verify([]);
     }
 
     [Fact(DisplayName = "An 'ITypeBuilder<T>' is added for a 'record' in the 'global' namespace.")]
@@ -217,7 +510,7 @@ public sealed class ContainerGeneratorTests
         };
 
         // Act & assert.
-        sut.Verify();
+        sut.Verify([]);
     }
 
     [Fact(DisplayName = "An 'ITypeBuilder<T>' is added for a 'record' in a namespace.")]
@@ -321,6 +614,6 @@ public sealed class ContainerGeneratorTests
         };
 
         // Act & assert.
-        sut.Verify();
+        sut.Verify([]);
     }
 }
