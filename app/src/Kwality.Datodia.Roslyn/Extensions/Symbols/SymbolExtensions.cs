@@ -35,6 +35,7 @@ internal static class SymbolExtensions
 
         var containingType = symbol.ContainingType != null ? symbol.ContainingType.ToDisplayString() : string.Empty;
 
-        return string.IsNullOrEmpty(containingType) ? symbolNamespace : $"{symbolNamespace}.{containingType}";
+        return string.IsNullOrEmpty(containingType) ? symbolNamespace :
+               string.IsNullOrEmpty(symbolNamespace) ? containingType : $"{symbolNamespace}.{containingType}";
     }
 }
