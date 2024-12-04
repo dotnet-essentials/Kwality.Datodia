@@ -32,6 +32,15 @@ using Xunit;
 
 public sealed class ContainerGeneratorTests
 {
+    private const string markerAttributeSource = """
+                                                 [global::System.AttributeUsage(global::System.AttributeTargets.Class)]
+                                                 public sealed class TypeBuilderAttribute : System.Attribute
+                                                 {
+                                                     // NOTE: Intentionally left blank.
+                                                     //       Used as a "marker" attribute.
+                                                 }
+                                                 """;
+
     [Fact(DisplayName = "The 'Container' is added (always).")]
     internal void The_container_is_added()
     {
@@ -41,6 +50,7 @@ public sealed class ContainerGeneratorTests
             InputSources = [],
             ExpectedGeneratedSources =
             [
+                markerAttributeSource,
                 """
                 namespace Kwality.Datodia;
 
@@ -119,11 +129,10 @@ public sealed class ContainerGeneratorTests
         // Arrange.
         var sut = new SourceGeneratorVerifier<ContainerGenerator>
         {
-            InputSources = [
-                "public sealed record Person;",
-            ],
+            InputSources = ["public sealed record Person;"],
             ExpectedGeneratedSources =
             [
+                markerAttributeSource,
                 """
                 namespace Kwality.Datodia;
 
@@ -216,7 +225,8 @@ public sealed class ContainerGeneratorTests
         // Arrange.
         var sut = new SourceGeneratorVerifier<ContainerGenerator>
         {
-            InputSources = [
+            InputSources =
+            [
                 """
                 namespace Samples;
                 
@@ -225,6 +235,7 @@ public sealed class ContainerGeneratorTests
             ],
             ExpectedGeneratedSources =
             [
+                markerAttributeSource,
                 """
                 namespace Kwality.Datodia;
 

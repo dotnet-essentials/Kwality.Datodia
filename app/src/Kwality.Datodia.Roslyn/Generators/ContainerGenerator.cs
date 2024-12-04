@@ -28,12 +28,15 @@ namespace Kwality.Datodia.Roslyn.Generators;
 using System.Collections.Immutable;
 using System.Text;
 
+using Kwality.Datodia.Roslyn.Code.Definitions;
 using Kwality.Datodia.Roslyn.Extensions.Symbols;
 using Kwality.Datodia.Roslyn.Generators.Models;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+
+using Accessibility = Kwality.Datodia.Roslyn.Code.Enumerations.Accessibility;
 
 [Generator]
 public sealed class ContainerGenerator : IIncrementalGenerator
@@ -110,9 +113,12 @@ public sealed class ContainerGenerator : IIncrementalGenerator
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
+        AddTypeBuilderMarkerAttribute(context);
+
         var typeBuildersProvider = context.SyntaxProvider
                                           .CreateSyntaxProvider(TypeBuildersPredicate, TypeBuildersTransformation)
-                                          .Where(typeBuilder => typeBuilder is not null).Collect();
+                                          .Where(typeBuilder => typeBuilder is not null).WithTrackingName("Classes")
+                                          .Collect();
 
         var recordsProvider = context.SyntaxProvider
                                      .CreateSyntaxProvider(RecordsPredicate, RecordsDeclarationSyntaxTransformation)
@@ -206,6 +212,14 @@ public sealed class ContainerGenerator : IIncrementalGenerator
             ctx.AddSource($"{definition.Namespace}.{definition.BuilderName}.g.cs",
                           SourceText.From(typeBuilderSource, Encoding.UTF8));
         }
+    }
+
+    private static void AddTypeBuilderMarkerAttribute(IncrementalGeneratorInitializationContext context)
+    {
+        Attribute markerAttribute = new("TypeBuilderAttribute", AttributeTargets.Class, Accessibility.Public);
+
+        context.RegisterPostInitializationOutput(ctx => ctx.AddSource("Kwality.Datodia.TypeBuilder.Attribute.g.cs",
+                                                                      markerAttribute.ToString()));
     }
 
     private static string CreateTypeBuilderInstances(ImmutableArray<TypeBuilderDefinition?> typeBuilderDefinitions)
