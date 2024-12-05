@@ -63,11 +63,8 @@ internal sealed class SourceGeneratorVerifier<TGenerator> : RoslynComponentVerif
 
         // Assert.
         _ = diagnostics.Should().BeEmpty();
-
-        _ = result.SyntaxTrees.Select(x => x.ToString()).Should()
-                  .HaveCount(compilation.SyntaxTrees.Count() + (this.ExpectedGeneratedSources?.Length ?? 0));
-
-        _ = result.SyntaxTrees.Select(x => x.ToString()).Should().Contain(this.ExpectedGeneratedSources ?? []);
+        _ = runResult1.GeneratedTrees.Should().HaveCount(this.ExpectedGeneratedSources?.Length ?? 0);
+        _ = runResult1.GeneratedTrees.Select(x => x.ToString()).Should().Contain(this.ExpectedGeneratedSources ?? []);
     }
 
     private static void CompareResults(GeneratorDriverRunResult r1, GeneratorDriverRunResult r2, string[] trackingNames)
