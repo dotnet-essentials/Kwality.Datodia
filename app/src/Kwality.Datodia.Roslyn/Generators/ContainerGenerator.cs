@@ -216,7 +216,6 @@ public sealed class ContainerGenerator : IIncrementalGenerator
 
             ctx.AddSource($"{definition.Namespace}.{definition.BuilderName}.g.cs",
                           SourceText.From(typeBuilderSource, Encoding.UTF8));
-            
         }
     }
 
