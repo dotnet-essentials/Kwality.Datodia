@@ -116,8 +116,11 @@ public sealed class ContainerGenerator : IIncrementalGenerator
         AddTypeBuilderMarkerAttribute(context);
 
         var typeBuildersProvider = context.SyntaxProvider
-                                          .CreateSyntaxProvider(TypeBuildersPredicate, TypeBuildersTransformation)
-                                          .Where(typeBuilder => typeBuilder is not null).Collect();
+                                          .ForAttributeWithMetadataName("TypeBuilderAttribute", TypeBuildersPredicate,
+                                                                        TypeBuildersTransformation)
+                                          .WithTrackingName("InitialExtraction")
+                                          .Where(typeBuilder => typeBuilder is not null).WithTrackingName("NotNull")
+                                          .Collect();
 
         var recordsProvider = context.SyntaxProvider
                                      .CreateSyntaxProvider(RecordsPredicate, RecordsDeclarationSyntaxTransformation)
@@ -139,22 +142,35 @@ public sealed class ContainerGenerator : IIncrementalGenerator
             return node is RecordDeclarationSyntax;
         }
 
-        TypeBuilderDefinition? TypeBuildersTransformation(GeneratorSyntaxContext ctx,
+        TypeBuilderDefinition? TypeBuildersTransformation(GeneratorAttributeSyntaxContext ctx,
             CancellationToken cancellationToken)
         {
-            var classDeclaration = (ClassDeclarationSyntax)ctx.Node;
-            var symbol = ctx.SemanticModel.GetDeclaredSymbol(classDeclaration, cancellationToken) as INamedTypeSymbol;
-            var @interface = symbol?.GetInterface(typeBuilderInterfaceFqName);
+            cancellationToken.ThrowIfCancellationRequested();
 
-            if (symbol == null || @interface == null)
+            if (ctx.TargetSymbol is not INamedTypeSymbol classSymbol)
             {
                 return null;
             }
 
-            var symbolNamespace = symbol.GetFullNamespace();
+            foreach (var attributeData in classSymbol.GetAttributes())
+            {
+                if (attributeData.AttributeClass?.Name != "TypeBuilderAttribute"
+                 || attributeData.AttributeClass.ToDisplayString() != "TypeBuilderAttribute")
+                {
+                }
+            }
+
+            var @interface = classSymbol.GetInterface(typeBuilderInterfaceFqName);
+
+            if (@interface == null)
+            {
+                return null;
+            }
+
+            var symbolNamespace = classSymbol.GetFullNamespace();
             var typeBuilderNamespace = string.IsNullOrEmpty(symbolNamespace) ? string.Empty : symbolNamespace;
 
-            return new(@interface.TypeArguments[0].ToDisplayString(), symbol.Name, typeBuilderNamespace);
+            return new(@interface.TypeArguments[0].ToDisplayString(), classSymbol.Name, typeBuilderNamespace);
         }
 
         TypeBuilderDefinition? RecordsDeclarationSyntaxTransformation(GeneratorSyntaxContext ctx,
@@ -170,7 +186,10 @@ public sealed class ContainerGenerator : IIncrementalGenerator
 
             var fullTypeName = symbol.ToDisplayString();
             var symbolNamespace = symbol.GetFullNamespace();
-            var typeBuilderNamespace = string.IsNullOrEmpty(symbolNamespace) ? generatedTypeBuildersNamespace : $"{generatedTypeBuildersNamespace}.{symbolNamespace}";
+
+            var typeBuilderNamespace = string.IsNullOrEmpty(symbolNamespace) ? generatedTypeBuildersNamespace
+                                           : $"{generatedTypeBuildersNamespace}.{symbolNamespace}";
+
             var typeBuilderName = $"{symbol.Name}TypeBuilder";
 
             return new(fullTypeName, typeBuilderName, typeBuilderNamespace);

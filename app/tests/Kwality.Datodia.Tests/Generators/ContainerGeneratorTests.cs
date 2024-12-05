@@ -122,8 +122,8 @@ public sealed class ContainerGeneratorTests
         sut.Verify();
     }
 
-    [Fact(DisplayName = "An 'ITypeBuilder<T>' with the 'marker' attribute is added to the container.")]
-    internal void Builders_with_the_marker_attribute_are_added_to_the_container()
+    [Fact(DisplayName = "A marked 'ITypeBuilder<T>' is added to the container.")]
+    internal void Marked_builders_are_added_to_the_container()
     {
         // ARRANGE.
         var sut = new SourceGeneratorVerifier<ContainerGenerator>
@@ -214,11 +214,11 @@ public sealed class ContainerGeneratorTests
         };
 
         // ACT & ASSERT.
-        sut.Verify();
+        sut.Verify(["InitialExtraction", "NotNull"]);
     }
 
-    [Fact(DisplayName = "A (namespaced) 'ITypeBuilder<T>' with the 'marker' attribute is added to the container.")]
-    internal void Namespaced_builders_with_the_marker_attribute_are_added_to_the_container()
+    [Fact(DisplayName = "A marked (namespaced) 'ITypeBuilder<T>' is added to the container.")]
+    internal void Marked_namespaced_builders_are_added_to_the_container()
     {
         // ARRANGE.
         var sut = new SourceGeneratorVerifier<ContainerGenerator>
@@ -311,11 +311,11 @@ public sealed class ContainerGeneratorTests
         };
 
         // ARRANGE.
-        sut.Verify();
+        sut.Verify(["InitialExtraction", "NotNull"]);
     }
 
-    [Fact(DisplayName = "A (nested) 'ITypeBuilder<T>' with the 'marker' attribute is added to the container.")]
-    internal void Nested_builders_with_the_marker_attribute_are_added_to_the_container()
+    [Fact(DisplayName = "A marked (nested) 'ITypeBuilder<T>' is added to the container.")]
+    internal void Marked_nested_builders_are_added_to_the_container()
     {
         // ACT & ASSERT.
         var sut = new SourceGeneratorVerifier<ContainerGenerator>
@@ -409,12 +409,11 @@ public sealed class ContainerGeneratorTests
         };
 
         // ACT & ASSERT.
-        sut.Verify();
+        sut.Verify(["InitialExtraction", "NotNull"]);
     }
 
-    [Fact(DisplayName =
-                 "A (nested, namespaced) 'ITypeBuilder<T>' with the 'marker' attribute is added to the container.")]
-    internal void Nested_namespaced_builders_with_the_marker_attribute_are_added_to_the_container()
+    [Fact(DisplayName = "A marked (nested, namespaced) 'ITypeBuilder<T>' is added to the container.")]
+    internal void Marked_nested_namespaced_builders_are_added_to_the_container()
     {
         // ARRANGE.
         var sut = new SourceGeneratorVerifier<ContainerGenerator>
@@ -510,7 +509,7 @@ public sealed class ContainerGeneratorTests
         };
 
         // ACT & ASSERT.
-        sut.Verify();
+        sut.Verify(["InitialExtraction", "NotNull"]);
     }
 
     [Fact(DisplayName = "An 'ITypeBuilder<T>' is generated for a 'record'.")]
