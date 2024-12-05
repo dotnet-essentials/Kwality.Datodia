@@ -44,7 +44,7 @@ public sealed class ContainerGeneratorTests
     [Fact(DisplayName = "The 'Container' is added (always).")]
     internal void The_container_is_added()
     {
-        // Arrange.
+        // ARRANGE.
         var sut = new SourceGeneratorVerifier<ContainerGenerator>
         {
             InputSources = [],
@@ -118,14 +118,14 @@ public sealed class ContainerGeneratorTests
             ],
         };
 
-        // Act & assert.
-        sut.Verify([]);
+        // ACT & ASSERT.
+        sut.Verify();
     }
 
     [Fact(DisplayName = "An 'ITypeBuilder<T>' with the 'marker' attribute is added to the container.")]
     internal void Builders_with_the_marker_attribute_are_added_to_the_container()
     {
-        // Arrange.
+        // ARRANGE.
         var sut = new SourceGeneratorVerifier<ContainerGenerator>
         {
             InputSources =
@@ -213,14 +213,14 @@ public sealed class ContainerGeneratorTests
             ],
         };
 
-        // Act & assert.
-        sut.Verify([]);
+        // ACT & ASSERT.
+        sut.Verify();
     }
 
     [Fact(DisplayName = "A (namespaced) 'ITypeBuilder<T>' with the 'marker' attribute is added to the container.")]
     internal void Namespaced_builders_with_the_marker_attribute_are_added_to_the_container()
     {
-        // Arrange.
+        // ARRANGE.
         var sut = new SourceGeneratorVerifier<ContainerGenerator>
         {
             InputSources =
@@ -310,14 +310,14 @@ public sealed class ContainerGeneratorTests
             ],
         };
 
-        // Act & assert.
-        sut.Verify([]);
+        // ARRANGE.
+        sut.Verify();
     }
 
     [Fact(DisplayName = "A (nested) 'ITypeBuilder<T>' with the 'marker' attribute is added to the container.")]
     internal void Nested_builders_with_the_marker_attribute_are_added_to_the_container()
     {
-        // Arrange.
+        // ACT & ASSERT.
         var sut = new SourceGeneratorVerifier<ContainerGenerator>
         {
             InputSources =
@@ -408,15 +408,15 @@ public sealed class ContainerGeneratorTests
             ],
         };
 
-        // Act & assert.
-        sut.Verify([]);
+        // ACT & ASSERT.
+        sut.Verify();
     }
 
     [Fact(DisplayName =
                  "A (nested, namespaced) 'ITypeBuilder<T>' with the 'marker' attribute is added to the container.")]
     internal void Nested_namespaced_builders_with_the_marker_attribute_are_added_to_the_container()
     {
-        // Arrange.
+        // ARRANGE.
         var sut = new SourceGeneratorVerifier<ContainerGenerator>
         {
             InputSources =
@@ -509,14 +509,14 @@ public sealed class ContainerGeneratorTests
             ],
         };
 
-        // Act & assert.
-        sut.Verify([]);
+        // ACT & ASSERT.
+        sut.Verify();
     }
 
     [Fact(DisplayName = "An 'ITypeBuilder<T>' is generated for a 'record'.")]
     internal void Builder_is_generated_for_records()
     {
-        // Arrange.
+        // ARRANGE.
         var sut = new SourceGeneratorVerifier<ContainerGenerator>
         {
             InputSources = ["public sealed record Person;"],
@@ -605,14 +605,14 @@ public sealed class ContainerGeneratorTests
             ],
         };
 
-        // Act & assert.
-        sut.Verify([]);
+        // ACT & ASSERT.
+        sut.Verify();
     }
 
     [Fact(DisplayName = "An 'ITypeBuilder<T>' is generated for a (namespaced) 'record'.")]
     internal void Builder_is_generated_for_namespaced_records()
     {
-        // Arrange.
+        // ARRANGE.
         var sut = new SourceGeneratorVerifier<ContainerGenerator>
         {
             InputSources =
@@ -708,14 +708,14 @@ public sealed class ContainerGeneratorTests
             ],
         };
 
-        // Act & assert.
-        sut.Verify([]);
+        // ACT & ASSERT.
+        sut.Verify();
     }
 
     [Fact(DisplayName = "An 'ITypeBuilder<T>' is generated for a (nested) 'record'.")]
     internal void Builder_is_generated_for_nested_records()
     {
-        // Arrange.
+        // ARRANGE.
         var sut = new SourceGeneratorVerifier<ContainerGenerator>
         {
             InputSources =
@@ -812,14 +812,14 @@ public sealed class ContainerGeneratorTests
             ],
         };
 
-        // Act & assert.
-        sut.Verify([]);
+        // ACT & ASSERT.
+        sut.Verify();
     }
 
     [Fact(DisplayName = "An 'ITypeBuilder<T>' is generated for a (nested, namespaced) 'record'.")]
     internal void Builder_is_generated_for_nested_namespaced_records()
     {
-        // Arrange.
+        // ARRANGE.
         var sut = new SourceGeneratorVerifier<ContainerGenerator>
         {
             InputSources =
@@ -918,7 +918,7 @@ public sealed class ContainerGeneratorTests
             ],
         };
 
-        // Act & assert.
-        sut.Verify([]);
+        // ACT & ASSERT.
+        sut.Verify();
     }
 }

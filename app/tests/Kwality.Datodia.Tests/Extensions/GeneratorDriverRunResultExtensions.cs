@@ -1,4 +1,4 @@
-// =====================================================================================================================
+﻿// =====================================================================================================================
 // == LICENSE:       Copyright (c) 2024 Kevin De Coninck
 // ==
 // ==                Permission is hereby granted, free of charge, to any person
@@ -24,12 +24,14 @@
 // =====================================================================================================================
 namespace Kwality.Datodia.Tests.Extensions;
 
+using Kwality.Datodia.Tests.Assertions;
+
 using Microsoft.CodeAnalysis;
 
-internal static class DiagnosticExtensions
+internal static class GeneratorDriverRunResultExtensions
 {
-    public static bool IsError(this Diagnostic diagnostic)
+    public static GeneratorDriverRunResultAssertions Should(this GeneratorDriverRunResult runResult)
     {
-        return diagnostic.Severity == DiagnosticSeverity.Error;
+        return new(runResult);
     }
 }

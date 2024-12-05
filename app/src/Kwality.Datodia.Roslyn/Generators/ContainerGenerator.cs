@@ -117,8 +117,7 @@ public sealed class ContainerGenerator : IIncrementalGenerator
 
         var typeBuildersProvider = context.SyntaxProvider
                                           .CreateSyntaxProvider(TypeBuildersPredicate, TypeBuildersTransformation)
-                                          .Where(typeBuilder => typeBuilder is not null)
-                                          .Collect();
+                                          .Where(typeBuilder => typeBuilder is not null).Collect();
 
         var recordsProvider = context.SyntaxProvider
                                      .CreateSyntaxProvider(RecordsPredicate, RecordsDeclarationSyntaxTransformation)
