@@ -36,11 +36,10 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-using Accessibility = Kwality.Datodia.Roslyn.Code.Enumerations.Accessibility;
-
 [Generator]
 public sealed class ContainerGenerator : IIncrementalGenerator
 {
+    private const string markerAttribute = "TypeBuilderAttribute";
     private const string typeBuilderInterfaceNamespace = "Kwality.Datodia.Builders.Abstractions";
     private const string typeBuilderInterfaceName = "ITypeBuilder";
     private const string typeBuilderInterfaceFqName = $"{typeBuilderInterfaceNamespace}.{typeBuilderInterfaceName}<T>";
@@ -115,26 +114,26 @@ public sealed class ContainerGenerator : IIncrementalGenerator
     {
         AddTypeBuilderMarkerAttribute(context);
 
-        var typeBuildersProvider = context.SyntaxProvider
-                                          .ForAttributeWithMetadataName("TypeBuilderAttribute", TypeBuildersPredicate,
-                                                                        TypeBuildersTransformation)
-                                          .WithTrackingName("InitialExtraction")
-                                          .Where(typeBuilder => typeBuilder is not null).WithTrackingName("NotNull")
-                                          .Collect();
+        var typeBuilders = context.SyntaxProvider
+                                  .ForAttributeWithMetadataName(markerAttribute, this.Predicate, Transformation)
+                                  .WithTrackingName("InitialExtraction").Where(typeBuilder => typeBuilder is not null)
+                                  .WithTrackingName("NotNull").Collect();
 
         var recordsProvider = context.SyntaxProvider
                                      .CreateSyntaxProvider(RecordsPredicate, RecordsDeclarationSyntaxTransformation)
                                      .Where(typeBuilder => typeBuilder is not null);
 
-        var flattenedProvider = typeBuildersProvider.Combine(recordsProvider.Collect())
-                                                    .SelectMany((tuple, _) => tuple.Left.Concat(tuple.Right)).Collect();
+        var flattenedProvider = typeBuilders.Combine(recordsProvider.Collect())
+                                            .SelectMany((tuple, _) => tuple.Left.Concat(tuple.Right)).Collect();
 
         context.RegisterSourceOutput(recordsProvider, GenerateRecordTypeBuilder);
         context.RegisterSourceOutput(flattenedProvider, GenerateContainerSource);
 
-        bool TypeBuildersPredicate(SyntaxNode node, CancellationToken _)
+        IncrementalValuesProvider<TypeBuilderDefinition?> FetchTypeBuildersFromSyntax()
         {
-            return node is ClassDeclarationSyntax { AttributeLists.Count: > 0 };
+            return context.SyntaxProvider
+                          .ForAttributeWithMetadataName("TypeBuilderAttribute", this.Predicate, Transformation)
+                          .WithTrackingName("InitialExtraction");
         }
 
         bool RecordsPredicate(SyntaxNode node, CancellationToken _)
@@ -142,8 +141,7 @@ public sealed class ContainerGenerator : IIncrementalGenerator
             return node is RecordDeclarationSyntax;
         }
 
-        TypeBuilderDefinition? TypeBuildersTransformation(GeneratorAttributeSyntaxContext ctx,
-            CancellationToken cancellationToken)
+        TypeBuilderDefinition? Transformation(GeneratorAttributeSyntaxContext ctx, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -237,12 +235,15 @@ public sealed class ContainerGenerator : IIncrementalGenerator
         }
     }
 
+    private bool Predicate(SyntaxNode node, CancellationToken _)
+    {
+        return node is ClassDeclarationSyntax { AttributeLists.Count: > 0 };
+    }
+
     private static void AddTypeBuilderMarkerAttribute(IncrementalGeneratorInitializationContext context)
     {
-        Attribute markerAttribute = new("TypeBuilderAttribute", AttributeTargets.Class, Accessibility.Public);
-
-        context.RegisterPostInitializationOutput(ctx => ctx.AddSource("Kwality.Datodia.TypeBuilder.Attribute.g.cs",
-                                                                      markerAttribute.ToString()));
+        var attribute = Attribute.Public(markerAttribute, AttributeTargets.Class);
+        context.RegisterPostInitializationOutput(ctx => ctx.AddSource(attribute.HintName, attribute.ToString()));
     }
 
     private static string CreateTypeBuilderInstances(ImmutableArray<TypeBuilderDefinition?> typeBuilderDefinitions)

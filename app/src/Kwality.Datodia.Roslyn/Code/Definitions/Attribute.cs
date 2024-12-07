@@ -29,17 +29,34 @@ using Kwality.Datodia.Roslyn.Code.Extensions.Definitions.Attributes;
 using Kwality.Datodia.Roslyn.Code.Extensions.Enumerations;
 using Kwality.Datodia.Roslyn.Helpers.Normalizers;
 
-internal sealed class Attribute(string name, AttributeTargets targets, Accessibility accessibility)
+internal sealed record Attribute
 {
+    private readonly Accessibility accessibility;
+    private readonly string attributeName;
+    private readonly AttributeTargets targets;
+
+    private Attribute(string name, AttributeTargets targets, Accessibility accessibility)
+    {
+        this.attributeName = AttributeNameNormalizer.Normalize(name);
+        this.targets = targets;
+        this.accessibility = accessibility;
+    }
+
+    public string HintName => $"Kwality.Datodia.{this.attributeName}.Attribute.g.cs";
+
+    public static Attribute Public(string name, AttributeTargets targets)
+    {
+        return new(name, targets, Accessibility.Public);
+    }
+
     public override string ToString()
     {
-        var attributeName = AttributeNameNormalizer.Normalize(name);
-        var targetString = targets.ToUsageString();
-        var accessibilityString = accessibility.ToDisplayString();
+        var targetString = this.targets.ToUsageString();
+        var accessibilityString = this.accessibility.ToDisplayString();
 
         return $$"""
                  [global::System.AttributeUsage({{targetString}})]
-                 {{accessibilityString}} sealed class {{attributeName}}Attribute : System.Attribute
+                 {{accessibilityString}} sealed class {{this.attributeName}}Attribute : System.Attribute
                  {
                      // NOTE: Intentionally left blank.
                      //       Used as a "marker" attribute.
