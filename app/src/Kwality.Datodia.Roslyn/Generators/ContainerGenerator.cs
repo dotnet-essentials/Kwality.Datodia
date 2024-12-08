@@ -40,11 +40,12 @@ using Microsoft.CodeAnalysis.Text;
 public sealed class ContainerGenerator : IIncrementalGenerator
 {
     private const string markerAttribute = "TypeBuilderAttribute";
-    private const string typeBuilderInterfaceNamespace = "Kwality.Datodia.Builders.Abstractions";
+    private const string typeBuilderNamespace = "Kwality.Datodia.Builders";
+    private const string typeBuilderInterfaceNamespace = $"{typeBuilderNamespace}.Abstractions";
     private const string typeBuilderInterfaceName = "ITypeBuilder";
     private const string typeBuilderInterfaceFqName = $"{typeBuilderInterfaceNamespace}.{typeBuilderInterfaceName}<T>";
-    private const string systemTypeBuildersNamespace = "Kwality.Datodia.Builders.System";
-    private const string generatedTypeBuildersNamespace = "Kwality.Datodia.Builders.Generated";
+    private const string systemTypeBuildersNamespace = $"{typeBuilderNamespace}.System";
+    private const string generatedTypeBuildersNamespace = $"{typeBuilderNamespace}.Generated";
 
     private const string containerSource = """
                                            namespace Kwality.Datodia;
