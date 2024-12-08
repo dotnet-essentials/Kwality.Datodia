@@ -45,7 +45,6 @@ public sealed class ContainerGenerator : IIncrementalGenerator
     private const string typeBuilderInterfaceName = "ITypeBuilder";
     private const string typeBuilderInterfaceFqName = $"{typeBuilderInterfaceNamespace}.{typeBuilderInterfaceName}<T>";
     private const string systemTypeBuildersNamespace = $"{typeBuilderNamespace}.System";
-    private const string generatedTypeBuildersNamespace = $"{typeBuilderNamespace}.Generated";
 
     private const string containerSource = """
                                            namespace Kwality.Datodia;
@@ -116,43 +115,13 @@ public sealed class ContainerGenerator : IIncrementalGenerator
         AddTypeBuilderMarkerAttribute(context);
 
         var typeBuildersProvider = GetTypeBuildersProvider(context);
-
-        var recordsProvider = context.SyntaxProvider
-                                     .CreateSyntaxProvider(RecordsPredicate, RecordsDeclarationSyntaxTransformation)
-                                     .Where(typeBuilder => typeBuilder is not null);
+        var recordsProvider = GetRecordsProvider(context);
 
         var flattenedProvider = typeBuildersProvider.Collect().Combine(recordsProvider.Collect())
                                             .SelectMany((tuple, _) => tuple.Left.Concat(tuple.Right)).Collect();
 
         context.RegisterSourceOutput(recordsProvider, GenerateRecordTypeBuilder);
         context.RegisterSourceOutput(flattenedProvider, GenerateContainerSource);
-
-        bool RecordsPredicate(SyntaxNode node, CancellationToken _)
-        {
-            return node is RecordDeclarationSyntax;
-        }
-
-        TypeBuilderDefinition? RecordsDeclarationSyntaxTransformation(GeneratorSyntaxContext ctx,
-            CancellationToken cancellationToken)
-        {
-            var recordDeclarationSymbol = (RecordDeclarationSyntax)ctx.Node;
-
-            if (ctx.SemanticModel.GetDeclaredSymbol(recordDeclarationSymbol, cancellationToken) is not INamedTypeSymbol
-                symbol)
-            {
-                return null;
-            }
-
-            var fullTypeName = symbol.ToDisplayString();
-            var symbolNamespace = symbol.GetFullNamespace();
-
-            var typeBuilderNamespace = string.IsNullOrEmpty(symbolNamespace) ? generatedTypeBuildersNamespace
-                                           : $"{generatedTypeBuildersNamespace}.{symbolNamespace}";
-
-            var typeBuilderName = $"{symbol.Name}TypeBuilder";
-
-            return new(fullTypeName, typeBuilderName, typeBuilderNamespace);
-        }
 
         void GenerateContainerSource(SourceProductionContext ctx,
             ImmutableArray<TypeBuilderDefinition?> typeBuilderDefinitions)
@@ -238,7 +207,43 @@ public sealed class ContainerGenerator : IIncrementalGenerator
         }
     }
 
-    
+    private static IncrementalValuesProvider<TypeBuilderDefinition?> GetRecordsProvider(
+        IncrementalGeneratorInitializationContext context)
+    {
+        return context.SyntaxProvider.CreateSyntaxProvider(Predicate, Transformation)
+                      .WithTrackingName("Records.InitialExtraction").Where(builder => builder is not null)
+                      .WithTrackingName("Records.NotNull");
+        
+        bool Predicate(SyntaxNode node, CancellationToken _)
+        {
+            return node is RecordDeclarationSyntax;
+        }
+
+        TypeBuilderDefinition? Transformation(GeneratorSyntaxContext ctx, CancellationToken cancellationToken)
+        {
+            const string containingNamespace = $"{typeBuilderNamespace}.Generated";
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var recordDeclarationSymbol = (RecordDeclarationSyntax)ctx.Node;
+
+            if (ctx.SemanticModel.GetDeclaredSymbol(recordDeclarationSymbol, cancellationToken) is not INamedTypeSymbol
+                symbol)
+            {
+                return null;
+            }
+
+            var fullTypeName = symbol.ToDisplayString();
+            var symbolNamespace = symbol.GetFullNamespace();
+
+            var @namespace = string.IsNullOrEmpty(symbolNamespace) ? containingNamespace
+                                           : $"{containingNamespace}.{symbolNamespace}";
+
+            var typeBuilderName = $"{symbol.Name}TypeBuilder";
+
+            return new(fullTypeName, typeBuilderName, @namespace);
+        }
+    }
 
     private static string CreateTypeBuilderInstances(ImmutableArray<TypeBuilderDefinition?> typeBuilderDefinitions)
     {

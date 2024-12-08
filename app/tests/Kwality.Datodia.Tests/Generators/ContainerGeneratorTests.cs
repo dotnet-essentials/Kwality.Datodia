@@ -605,7 +605,7 @@ public sealed class ContainerGeneratorTests
         };
 
         // ACT & ASSERT.
-        sut.Verify();
+        sut.Verify(["Records.InitialExtraction", "Records.NotNull"]);
     }
 
     [Fact(DisplayName = "An 'ITypeBuilder<T>' is generated for a (namespaced) 'record'.")]
@@ -708,7 +708,7 @@ public sealed class ContainerGeneratorTests
         };
 
         // ACT & ASSERT.
-        sut.Verify();
+        sut.Verify(["Records.InitialExtraction", "Records.NotNull"]);
     }
 
     [Fact(DisplayName = "An 'ITypeBuilder<T>' is generated for a (nested) 'record'.")]
@@ -812,7 +812,7 @@ public sealed class ContainerGeneratorTests
         };
 
         // ACT & ASSERT.
-        sut.Verify();
+        sut.Verify(["Records.InitialExtraction", "Records.NotNull"]);
     }
 
     [Fact(DisplayName = "An 'ITypeBuilder<T>' is generated for a (nested, namespaced) 'record'.")]
@@ -918,6 +918,6 @@ public sealed class ContainerGeneratorTests
         };
 
         // ACT & ASSERT.
-        sut.Verify();
+        sut.Verify(["Records.InitialExtraction", "Records.NotNull"]);
     }
 }
