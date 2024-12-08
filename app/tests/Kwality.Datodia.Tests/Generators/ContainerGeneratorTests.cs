@@ -214,7 +214,7 @@ public sealed class ContainerGeneratorTests
         };
 
         // ACT & ASSERT.
-        sut.Verify(["InitialExtraction", "NotNull"]);
+        sut.Verify(["Provider.InitialExtraction", "Provider.NotNull"]);
     }
 
     [Fact(DisplayName = "A marked (namespaced) 'ITypeBuilder<T>' is added to the container.")]
@@ -311,7 +311,7 @@ public sealed class ContainerGeneratorTests
         };
 
         // ARRANGE.
-        sut.Verify(["InitialExtraction", "NotNull"]);
+        sut.Verify(["Provider.InitialExtraction", "Provider.NotNull"]);
     }
 
     [Fact(DisplayName = "A marked (nested) 'ITypeBuilder<T>' is added to the container.")]
@@ -409,7 +409,7 @@ public sealed class ContainerGeneratorTests
         };
 
         // ACT & ASSERT.
-        sut.Verify(["InitialExtraction", "NotNull"]);
+        sut.Verify(["Provider.InitialExtraction", "Provider.NotNull"]);
     }
 
     [Fact(DisplayName = "A marked (nested, namespaced) 'ITypeBuilder<T>' is added to the container.")]
@@ -509,7 +509,7 @@ public sealed class ContainerGeneratorTests
         };
 
         // ACT & ASSERT.
-        sut.Verify(["InitialExtraction", "NotNull"]);
+        sut.Verify(["Provider.InitialExtraction", "Provider.NotNull"]);
     }
 
     [Fact(DisplayName = "An 'ITypeBuilder<T>' is generated for a 'record'.")]

@@ -115,61 +115,21 @@ public sealed class ContainerGenerator : IIncrementalGenerator
     {
         AddTypeBuilderMarkerAttribute(context);
 
-        var typeBuilders = context.SyntaxProvider
-                                  .ForAttributeWithMetadataName(markerAttribute, this.Predicate, Transformation)
-                                  .WithTrackingName("InitialExtraction").Where(typeBuilder => typeBuilder is not null)
-                                  .WithTrackingName("NotNull").Collect();
+        var typeBuildersProvider = GetTypeBuildersProvider(context);
 
         var recordsProvider = context.SyntaxProvider
                                      .CreateSyntaxProvider(RecordsPredicate, RecordsDeclarationSyntaxTransformation)
                                      .Where(typeBuilder => typeBuilder is not null);
 
-        var flattenedProvider = typeBuilders.Combine(recordsProvider.Collect())
+        var flattenedProvider = typeBuildersProvider.Collect().Combine(recordsProvider.Collect())
                                             .SelectMany((tuple, _) => tuple.Left.Concat(tuple.Right)).Collect();
 
         context.RegisterSourceOutput(recordsProvider, GenerateRecordTypeBuilder);
         context.RegisterSourceOutput(flattenedProvider, GenerateContainerSource);
 
-        IncrementalValuesProvider<TypeBuilderDefinition?> FetchTypeBuildersFromSyntax()
-        {
-            return context.SyntaxProvider
-                          .ForAttributeWithMetadataName("TypeBuilderAttribute", this.Predicate, Transformation)
-                          .WithTrackingName("InitialExtraction");
-        }
-
         bool RecordsPredicate(SyntaxNode node, CancellationToken _)
         {
             return node is RecordDeclarationSyntax;
-        }
-
-        TypeBuilderDefinition? Transformation(GeneratorAttributeSyntaxContext ctx, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (ctx.TargetSymbol is not INamedTypeSymbol classSymbol)
-            {
-                return null;
-            }
-
-            foreach (var attributeData in classSymbol.GetAttributes())
-            {
-                if (attributeData.AttributeClass?.Name != "TypeBuilderAttribute"
-                 || attributeData.AttributeClass.ToDisplayString() != "TypeBuilderAttribute")
-                {
-                }
-            }
-
-            var @interface = classSymbol.GetInterface(typeBuilderInterfaceFqName);
-
-            if (@interface == null)
-            {
-                return null;
-            }
-
-            var symbolNamespace = classSymbol.GetFullNamespace();
-            var typeBuilderNamespace = string.IsNullOrEmpty(symbolNamespace) ? string.Empty : symbolNamespace;
-
-            return new(@interface.TypeArguments[0].ToDisplayString(), classSymbol.Name, typeBuilderNamespace);
         }
 
         TypeBuilderDefinition? RecordsDeclarationSyntaxTransformation(GeneratorSyntaxContext ctx,
@@ -235,17 +195,50 @@ public sealed class ContainerGenerator : IIncrementalGenerator
                           SourceText.From(typeBuilderSource, Encoding.UTF8));
         }
     }
-
-    private bool Predicate(SyntaxNode node, CancellationToken _)
-    {
-        return node is ClassDeclarationSyntax { AttributeLists.Count: > 0 };
-    }
-
+    
     private static void AddTypeBuilderMarkerAttribute(IncrementalGeneratorInitializationContext context)
     {
         var attribute = Attribute.Public(markerAttribute, AttributeTargets.Class);
         context.RegisterPostInitializationOutput(ctx => ctx.AddSource(attribute.HintName, attribute.ToString()));
     }
+
+    private static IncrementalValuesProvider<TypeBuilderDefinition?> GetTypeBuildersProvider(
+        IncrementalGeneratorInitializationContext context)
+    {
+        return context.SyntaxProvider.ForAttributeWithMetadataName(markerAttribute, Predicate, Transformation)
+                      .WithTrackingName("Provider.InitialExtraction").Where(builder => builder is not null)
+                      .WithTrackingName("Provider.NotNull");
+
+        bool Predicate(SyntaxNode node, CancellationToken _)
+        {
+            return node is ClassDeclarationSyntax;
+        }
+
+        TypeBuilderDefinition? Transformation(GeneratorAttributeSyntaxContext ctx, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (ctx.TargetSymbol is not INamedTypeSymbol classSymbol)
+            {
+                return null;
+            }
+
+            var @interface = classSymbol.GetInterface(typeBuilderInterfaceFqName);
+
+            if (@interface == null)
+            {
+                return null;
+            }
+
+            var typeBuilderTypeDisplayName = @interface.TypeArguments.First().ToDisplayString();
+            var symbolNamespace = classSymbol.GetFullNamespace();
+            var @namespace = string.IsNullOrEmpty(symbolNamespace) ? string.Empty : symbolNamespace;
+
+            return new(typeBuilderTypeDisplayName, classSymbol.Name, @namespace);
+        }
+    }
+
+    
 
     private static string CreateTypeBuilderInstances(ImmutableArray<TypeBuilderDefinition?> typeBuilderDefinitions)
     {
