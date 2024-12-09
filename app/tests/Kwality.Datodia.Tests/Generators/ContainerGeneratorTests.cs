@@ -648,7 +648,7 @@ public sealed class ContainerGeneratorTests
                     /// <inheritdoc />
                     public object Create(IContainer container)
                     {
-                        return new global::Person();
+                        return new global::Person(container.Create<string>(), container.Create<string>());
                     }
                 }
                 """,

@@ -44,6 +44,22 @@ public sealed partial class ContainerTests
         _ = result.Should().NotBeNull();
     }
     
+    // @formatter:off
+    [Fact(DisplayName = "'Create<T>': When 'T' is a 'record' with a primary constructor an instance of the 'record' is returned.")]
+    // @formatter:on
+    internal void Create_record_with_primary_constructor_returns_a_record()
+    {
+        // ARRANGE.
+        var container = new Container();
+
+        // ACT.
+        var c1 = container.Create<City>();
+        var c2 = container.Create<City>();
+
+        // ASSERT.
+        _ = c1.Should().NotBe(c2);
+    }
+
     [Fact(DisplayName = "'Create<T>': An instance of a type created by a custom 'builder' is returned.")]
     internal void Create_type_defined_by_custom_builder()
     {
@@ -100,5 +116,5 @@ public sealed partial class ContainerTests
     }
 
     internal sealed record Person;
+    internal sealed record City(int ZipCode, string Name);
 }
-

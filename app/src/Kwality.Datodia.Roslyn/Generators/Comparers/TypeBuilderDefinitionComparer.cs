@@ -1,4 +1,4 @@
-﻿// =====================================================================================================================
+// =====================================================================================================================
 // == LICENSE:       Copyright (c) 2024 Kevin De Coninck
 // ==
 // ==                Permission is hereby granted, free of charge, to any person
@@ -22,53 +22,39 @@
 // ==                FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // ==                OTHER DEALINGS IN THE SOFTWARE.
 // =====================================================================================================================
-namespace Kwality.Datodia.Roslyn.Generators.Models;
+namespace Kwality.Datodia.Roslyn.Generators.Comparers;
 
-using System.Collections.Immutable;
+using Kwality.Datodia.Roslyn.Generators.Models;
 
-internal sealed record TypeBuilderDefinition(string FullTypeName, string BuilderName, string? Namespace,
-    ImmutableArray<TypeBuilderDefinition.Parameter> Parameters)
+internal sealed class TypeBuilderDefinitionComparer : IEqualityComparer<TypeBuilderDefinition?>
 {
-    public string FullTypeName
+    public bool Equals(TypeBuilderDefinition? x, TypeBuilderDefinition? y)
     {
-        get;
-    } = FullTypeName;
-
-    public string BuilderName
-    {
-        get;
-    } = BuilderName;
-
-    public string? Namespace
-    {
-        get;
-    } = Namespace;
-
-    public ImmutableArray<Parameter> Parameters
-    {
-        get;
-    } = Parameters;
-
-    private string FqName =>
-        !string.IsNullOrEmpty(this.Namespace) ? $"{this.Namespace}.{this.BuilderName}" : this.BuilderName;
-
-    private string InstanceName => $"{this.FqName.Replace(".", "_")}_Instance";
-
-    public string FormatAsInstance()
-    {
-        return $"    private static readonly {this.FqName} {this.InstanceName} = new {this.FqName}();";
-    }
-
-    public string FormatAsMapEntry()
-    {
-        return $"        {{ typeof({this.FullTypeName}), {this.InstanceName}.Create }},";
-    }
-    
-    internal sealed record Parameter(string? Type)
-    {
-        public string? Type
+        if (x is null && y is null)
         {
-            get;
-        } = Type;
+            return true;
+        }
+
+        if (x is null || y is null)
+        {
+            return false;
+        }
+
+        return x.FullTypeName == y.FullTypeName && x.BuilderName == y.BuilderName && x.Namespace == y.Namespace
+            && x.Parameters.SequenceEqual(y.Parameters);
+    }
+
+    public int GetHashCode(TypeBuilderDefinition? obj)
+    {
+        unchecked
+        {
+            var hash = 17;
+            hash = hash * 31 + (obj?.FullTypeName.GetHashCode() ?? 0);
+            hash = hash * 31 + (obj?.BuilderName.GetHashCode() ?? 0);
+            hash = hash * 31 + (obj?.Namespace?.GetHashCode() ?? 0);
+
+            return Enumerable.Aggregate(obj?.Parameters ?? [], hash,
+                                        (current, parameter) => current * 31 + (parameter.Type?.GetHashCode() ?? 0));
+        }
     }
 }

@@ -30,6 +30,7 @@ using System.Text;
 
 using Kwality.Datodia.Roslyn.Code.Definitions;
 using Kwality.Datodia.Roslyn.Extensions.Symbols;
+using Kwality.Datodia.Roslyn.Generators.Comparers;
 using Kwality.Datodia.Roslyn.Generators.Models;
 
 using Microsoft.CodeAnalysis;
@@ -96,10 +97,10 @@ public sealed class ContainerGenerator : IIncrementalGenerator
 
     private readonly TypeBuilderDefinition[] systemTypeBuilders =
     [
-        new("string", "StringTypeBuilder", systemTypeBuildersNamespace),
-        new("System.Guid", "GuidTypeBuilder", systemTypeBuildersNamespace),
-        new("bool", "BoolTypeBuilder", systemTypeBuildersNamespace),
-        new("int", "Int32TypeBuilder", systemTypeBuildersNamespace),
+        new("string", "StringTypeBuilder", systemTypeBuildersNamespace, []),
+        new("System.Guid", "GuidTypeBuilder", systemTypeBuildersNamespace, []),
+        new("bool", "BoolTypeBuilder", systemTypeBuildersNamespace, []),
+        new("int", "Int32TypeBuilder", systemTypeBuildersNamespace, []),
     ];
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -133,7 +134,14 @@ public sealed class ContainerGenerator : IIncrementalGenerator
                 return;
             }
 
+            var @params = definition.Parameters;
+            var constructorBuilder = new StringBuilder();
+            _ = constructorBuilder.Append($"return new global::{definition.FullTypeName}(");
+            _ = constructorBuilder.Append(string.Join(", ", @params.Select(p => $"container.Create<{p.Type}>()")));
+            _ = constructorBuilder.Append(");");
+
             // @formatter:off
+            
             var typeBuilderSource = $$"""
                                       namespace {{definition.Namespace}};
                                       
@@ -145,7 +153,7 @@ public sealed class ContainerGenerator : IIncrementalGenerator
                                           /// <inheritdoc />
                                           public object Create(IContainer container)
                                           {
-                                              return new global::{{definition.FullTypeName}}();
+                                              {{constructorBuilder}}
                                           }
                                       }
                                       """;
@@ -194,7 +202,7 @@ public sealed class ContainerGenerator : IIncrementalGenerator
             var symbolNamespace = classSymbol.GetFullNamespace();
             var @namespace = string.IsNullOrEmpty(symbolNamespace) ? string.Empty : symbolNamespace;
 
-            return new(displayName, classSymbol.Name, @namespace);
+            return new(displayName, classSymbol.Name, @namespace, []);
         }
     }
 
@@ -202,6 +210,7 @@ public sealed class ContainerGenerator : IIncrementalGenerator
         IncrementalGeneratorInitializationContext context)
     {
         return context.SyntaxProvider.CreateSyntaxProvider(Predicate, Transformation)
+                      .WithComparer(new TypeBuilderDefinitionComparer())
                       .WithTrackingName("Records.InitialExtraction").Where(builder => builder is not null)
                       .WithTrackingName("Records.NotNull");
 
@@ -212,8 +221,8 @@ public sealed class ContainerGenerator : IIncrementalGenerator
 
         TypeBuilderDefinition? Transformation(GeneratorSyntaxContext ctx, CancellationToken cancellationToken)
         {
-            const string containingNamespace = $"{typeBuilderNamespace}.Generated";
             cancellationToken.ThrowIfCancellationRequested();
+            const string containingNamespace = $"{typeBuilderNamespace}.Generated";
             var recordDeclarationSymbol = (RecordDeclarationSyntax)ctx.Node;
 
             if (ctx.SemanticModel.GetDeclaredSymbol(recordDeclarationSymbol, cancellationToken) is not INamedTypeSymbol
@@ -228,7 +237,12 @@ public sealed class ContainerGenerator : IIncrementalGenerator
             var @namespace = string.IsNullOrEmpty(symbolNamespace) ? containingNamespace
                                  : $"{containingNamespace}.{symbolNamespace}";
 
-            return new(fullTypeName, $"{symbol.Name}TypeBuilder", @namespace);
+            var parameters =
+                recordDeclarationSymbol.ParameterList?.Parameters.Select(x =>
+                                                                             new TypeBuilderDefinition.Parameter(x.Type
+                                                                               ?.ToString()));
+
+            return new(fullTypeName, $"{symbol.Name}TypeBuilder", @namespace, parameters?.ToImmutableArray() ?? []);
         }
     }
 
