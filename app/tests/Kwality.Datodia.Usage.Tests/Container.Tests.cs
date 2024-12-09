@@ -59,6 +59,22 @@ public sealed partial class ContainerTests
         // ASSERT.
         _ = c1.Should().NotBe(c2);
     }
+    
+    // @formatter:off
+    [Fact(DisplayName = "'Create<T>': When 'T' is a 'record' with a primary constructor and fields an instance of the 'record' is returned.")]
+    // @formatter:on
+    internal void Create_record_with_primary_constructor_and_fields_returns_a_record()
+    {
+        // ARRANGE.
+        var container = new Container();
+
+        // ACT.
+        var fn1 = container.Create<FullName>();
+        var fn2 = container.Create<FullName>();
+
+        // ASSERT.
+        _ = fn1.Should().NotBe(fn2);
+    }
 
     [Fact(DisplayName = "'Create<T>': An instance of a type created by a custom 'builder' is returned.")]
     internal void Create_type_defined_by_custom_builder()
@@ -117,4 +133,17 @@ public sealed partial class ContainerTests
 
     internal sealed record Person;
     internal sealed record City(int ZipCode, string Name);
+
+    internal sealed record FullName(string FirstName, string LastName)
+    {
+        public string FirstName
+        {
+            get;
+        } = FirstName;
+
+        public string LastName
+        {
+            get;
+        } = LastName;
+    }
 }
