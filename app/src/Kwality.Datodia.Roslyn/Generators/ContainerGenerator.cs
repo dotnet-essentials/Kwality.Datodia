@@ -113,31 +113,28 @@ public sealed class ContainerGenerator : IIncrementalGenerator
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         AddTypeBuilderMarkerAttribute(context);
-
         var typeBuildersProvider = GetTypeBuildersProvider(context);
         var recordsProvider = GetRecordsProvider(context);
 
-        var flattenedProvider = typeBuildersProvider.Collect().Combine(recordsProvider.Collect())
-                                            .SelectMany((tuple, _) => tuple.Left.Concat(tuple.Right)).Collect();
+        var combinedProvider = typeBuildersProvider.Collect().Combine(recordsProvider.Collect())
+                                                   .SelectMany((tuple, _) => tuple.Left.Concat(tuple.Right)).Collect();
 
-        context.RegisterSourceOutput(recordsProvider, GenerateRecordTypeBuilder);
-        context.RegisterSourceOutput(flattenedProvider, GenerateContainerSource);
+        context.RegisterSourceOutput(recordsProvider, GenerateTypeBuilder);
+        context.RegisterSourceOutput(combinedProvider, GenerateContainer);
 
-        void GenerateContainerSource(SourceProductionContext ctx,
-            ImmutableArray<TypeBuilderDefinition?> typeBuilderDefinitions)
+        void GenerateContainer(SourceProductionContext ctx, ImmutableArray<TypeBuilderDefinition?> typeBuilders)
         {
-            var allTypeBuilders = this.systemTypeBuilders.Concat(typeBuilderDefinitions).ToImmutableArray();
+            var allTypeBuilders = this.systemTypeBuilders.Concat(typeBuilders).ToImmutableArray();
             var typeBuildersInstance = CreateTypeBuilderInstances(allTypeBuilders);
             var typeBuilderMap = CreateTypeBuilderMap(allTypeBuilders);
 
-            var generatedContainerSource = containerSource
-                                          .Replace("[[#[[TYPE_BUILDERS_INSTANCES]]#]]", typeBuildersInstance)
-                                          .Replace("[[#[[TYPE_BUILDERS_MAP]]#]]", typeBuilderMap);
+            var generatedContainer = containerSource.Replace("[[#[[TYPE_BUILDERS_INSTANCES]]#]]", typeBuildersInstance)
+                                                    .Replace("[[#[[TYPE_BUILDERS_MAP]]#]]", typeBuilderMap);
 
-            ctx.AddSource("Container.g.cs", SourceText.From(generatedContainerSource, Encoding.UTF8));
+            ctx.AddSource("Container.g.cs", SourceText.From(generatedContainer, Encoding.UTF8));
         }
 
-        void GenerateRecordTypeBuilder(SourceProductionContext ctx, TypeBuilderDefinition? definition)
+        void GenerateTypeBuilder(SourceProductionContext ctx, TypeBuilderDefinition? definition)
         {
             if (definition == null)
             {
@@ -164,7 +161,7 @@ public sealed class ContainerGenerator : IIncrementalGenerator
                           SourceText.From(typeBuilderSource, Encoding.UTF8));
         }
     }
-    
+
     private static void AddTypeBuilderMarkerAttribute(IncrementalGeneratorInitializationContext context)
     {
         var attribute = Attribute.Public(markerAttribute, AttributeTargets.Class);
@@ -213,7 +210,7 @@ public sealed class ContainerGenerator : IIncrementalGenerator
         return context.SyntaxProvider.CreateSyntaxProvider(Predicate, Transformation)
                       .WithTrackingName("Records.InitialExtraction").Where(builder => builder is not null)
                       .WithTrackingName("Records.NotNull");
-        
+
         bool Predicate(SyntaxNode node, CancellationToken _)
         {
             return node is RecordDeclarationSyntax;
@@ -222,9 +219,7 @@ public sealed class ContainerGenerator : IIncrementalGenerator
         TypeBuilderDefinition? Transformation(GeneratorSyntaxContext ctx, CancellationToken cancellationToken)
         {
             const string containingNamespace = $"{typeBuilderNamespace}.Generated";
-
             cancellationToken.ThrowIfCancellationRequested();
-
             var recordDeclarationSymbol = (RecordDeclarationSyntax)ctx.Node;
 
             if (ctx.SemanticModel.GetDeclaredSymbol(recordDeclarationSymbol, cancellationToken) is not INamedTypeSymbol
@@ -237,7 +232,7 @@ public sealed class ContainerGenerator : IIncrementalGenerator
             var symbolNamespace = symbol.GetFullNamespace();
 
             var @namespace = string.IsNullOrEmpty(symbolNamespace) ? containingNamespace
-                                           : $"{containingNamespace}.{symbolNamespace}";
+                                 : $"{containingNamespace}.{symbolNamespace}";
 
             return new(fullTypeName, $"{symbol.Name}TypeBuilder", @namespace);
         }
