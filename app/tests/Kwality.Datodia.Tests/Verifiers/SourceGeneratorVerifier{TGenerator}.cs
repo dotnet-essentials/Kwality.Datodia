@@ -61,6 +61,11 @@ internal sealed class SourceGeneratorVerifier<TGenerator> : RoslynComponentVerif
         // Assert.
         _ = runResult1.Diagnostics.Should().BeEmpty();
 
+        _ = runResult1.GeneratedTrees.Select(x => x.ToString()).Should()
+                  .HaveCount((this.ExpectedGeneratedSources?.Length ?? 0));
+
+        _ = runResult1.GeneratedTrees.Select(x => x.ToString()).Should().Contain(this.ExpectedGeneratedSources ?? []);
+
         _ = runResult2.Results[0].TrackedOutputSteps.SelectMany(x => x.Value).SelectMany(x => x.Outputs).Should()
                       .OnlyContain(x => x.Reason == IncrementalStepRunReason.Cached);
 

@@ -81,12 +81,7 @@ public sealed class ContainerGeneratorTests
                                            /// <remarks>Defaults to 3.</remarks>
                                            public int RepeatCount{ get; set; } = 3;
                                        
-                                           /// <summary>
-                                           ///     Create an instance of T.
-                                           /// </summary>
-                                           /// <typeparam name="T">The type to create.</typeparam>
-                                           /// <returns>An instance of T.</returns>
-                                           /// <exception cref="DatodiaException">An instance of T couldn't be created.</exception>
+                                           /// <inheritdoc />
                                            public T Create<T>()
                                            {
                                                if (this.typeBuilders.TryGetValue(typeof(T), out var builder)) return (T)builder(this);
@@ -94,12 +89,7 @@ public sealed class ContainerGeneratorTests
                                                throw new DatodiaException($"No resolver registered for type '{typeof(T)}'.");
                                            }
                                        
-                                           /// <summary>
-                                           ///     Create multiple instances of T.
-                                           /// </summary>
-                                           /// <typeparam name="T">The type to create.</typeparam>
-                                           /// <returns>A collection of T elements.</returns>
-                                           /// <exception cref="DatodiaException">An instance of T couldn't be created.</exception>
+                                           /// <inheritdoc />
                                            public IEnumerable<T> CreateMany<T>()
                                            {
                                                for (var i = 0; i < this.RepeatCount; i++) yield return this.Create<T>();
@@ -177,12 +167,7 @@ public sealed class ContainerGeneratorTests
                                            /// <remarks>Defaults to 3.</remarks>
                                            public int RepeatCount{ get; set; } = 3;
                                        
-                                           /// <summary>
-                                           ///     Create an instance of T.
-                                           /// </summary>
-                                           /// <typeparam name="T">The type to create.</typeparam>
-                                           /// <returns>An instance of T.</returns>
-                                           /// <exception cref="DatodiaException">An instance of T couldn't be created.</exception>
+                                           /// <inheritdoc />
                                            public T Create<T>()
                                            {
                                                if (this.typeBuilders.TryGetValue(typeof(T), out var builder)) return (T)builder(this);
@@ -190,12 +175,7 @@ public sealed class ContainerGeneratorTests
                                                throw new DatodiaException($"No resolver registered for type '{typeof(T)}'.");
                                            }
                                        
-                                           /// <summary>
-                                           ///     Create multiple instances of T.
-                                           /// </summary>
-                                           /// <typeparam name="T">The type to create.</typeparam>
-                                           /// <returns>A collection of T elements.</returns>
-                                           /// <exception cref="DatodiaException">An instance of T couldn't be created.</exception>
+                                           /// <inheritdoc />
                                            public IEnumerable<T> CreateMany<T>()
                                            {
                                                for (var i = 0; i < this.RepeatCount; i++) yield return this.Create<T>();
@@ -275,12 +255,7 @@ public sealed class ContainerGeneratorTests
                                            /// <remarks>Defaults to 3.</remarks>
                                            public int RepeatCount{ get; set; } = 3;
                                        
-                                           /// <summary>
-                                           ///     Create an instance of T.
-                                           /// </summary>
-                                           /// <typeparam name="T">The type to create.</typeparam>
-                                           /// <returns>An instance of T.</returns>
-                                           /// <exception cref="DatodiaException">An instance of T couldn't be created.</exception>
+                                           /// <inheritdoc />
                                            public T Create<T>()
                                            {
                                                if (this.typeBuilders.TryGetValue(typeof(T), out var builder)) return (T)builder(this);
@@ -288,12 +263,7 @@ public sealed class ContainerGeneratorTests
                                                throw new DatodiaException($"No resolver registered for type '{typeof(T)}'.");
                                            }
                                        
-                                           /// <summary>
-                                           ///     Create multiple instances of T.
-                                           /// </summary>
-                                           /// <typeparam name="T">The type to create.</typeparam>
-                                           /// <returns>A collection of T elements.</returns>
-                                           /// <exception cref="DatodiaException">An instance of T couldn't be created.</exception>
+                                           /// <inheritdoc />
                                            public IEnumerable<T> CreateMany<T>()
                                            {
                                                for (var i = 0; i < this.RepeatCount; i++) yield return this.Create<T>();
@@ -374,12 +344,7 @@ public sealed class ContainerGeneratorTests
                                            /// <remarks>Defaults to 3.</remarks>
                                            public int RepeatCount{ get; set; } = 3;
                                        
-                                           /// <summary>
-                                           ///     Create an instance of T.
-                                           /// </summary>
-                                           /// <typeparam name="T">The type to create.</typeparam>
-                                           /// <returns>An instance of T.</returns>
-                                           /// <exception cref="DatodiaException">An instance of T couldn't be created.</exception>
+                                           /// <inheritdoc />
                                            public T Create<T>()
                                            {
                                                if (this.typeBuilders.TryGetValue(typeof(T), out var builder)) return (T)builder(this);
@@ -387,12 +352,7 @@ public sealed class ContainerGeneratorTests
                                                throw new DatodiaException($"No resolver registered for type '{typeof(T)}'.");
                                            }
                                        
-                                           /// <summary>
-                                           ///     Create multiple instances of T.
-                                           /// </summary>
-                                           /// <typeparam name="T">The type to create.</typeparam>
-                                           /// <returns>A collection of T elements.</returns>
-                                           /// <exception cref="DatodiaException">An instance of T couldn't be created.</exception>
+                                           /// <inheritdoc />
                                            public IEnumerable<T> CreateMany<T>()
                                            {
                                                for (var i = 0; i < this.RepeatCount; i++) yield return this.Create<T>();
@@ -475,12 +435,7 @@ public sealed class ContainerGeneratorTests
                                            /// <remarks>Defaults to 3.</remarks>
                                            public int RepeatCount{ get; set; } = 3;
                                        
-                                           /// <summary>
-                                           ///     Create an instance of T.
-                                           /// </summary>
-                                           /// <typeparam name="T">The type to create.</typeparam>
-                                           /// <returns>An instance of T.</returns>
-                                           /// <exception cref="DatodiaException">An instance of T couldn't be created.</exception>
+                                           /// <inheritdoc />
                                            public T Create<T>()
                                            {
                                                if (this.typeBuilders.TryGetValue(typeof(T), out var builder)) return (T)builder(this);
@@ -488,12 +443,7 @@ public sealed class ContainerGeneratorTests
                                                throw new DatodiaException($"No resolver registered for type '{typeof(T)}'.");
                                            }
                                        
-                                           /// <summary>
-                                           ///     Create multiple instances of T.
-                                           /// </summary>
-                                           /// <typeparam name="T">The type to create.</typeparam>
-                                           /// <returns>A collection of T elements.</returns>
-                                           /// <exception cref="DatodiaException">An instance of T couldn't be created.</exception>
+                                           /// <inheritdoc />
                                            public IEnumerable<T> CreateMany<T>()
                                            {
                                                for (var i = 0; i < this.RepeatCount; i++) yield return this.Create<T>();
@@ -559,12 +509,7 @@ public sealed class ContainerGeneratorTests
                                            /// <remarks>Defaults to 3.</remarks>
                                            public int RepeatCount{ get; set; } = 3;
                                        
-                                           /// <summary>
-                                           ///     Create an instance of T.
-                                           /// </summary>
-                                           /// <typeparam name="T">The type to create.</typeparam>
-                                           /// <returns>An instance of T.</returns>
-                                           /// <exception cref="DatodiaException">An instance of T couldn't be created.</exception>
+                                           /// <inheritdoc />
                                            public T Create<T>()
                                            {
                                                if (this.typeBuilders.TryGetValue(typeof(T), out var builder)) return (T)builder(this);
@@ -572,12 +517,7 @@ public sealed class ContainerGeneratorTests
                                                throw new DatodiaException($"No resolver registered for type '{typeof(T)}'.");
                                            }
                                        
-                                           /// <summary>
-                                           ///     Create multiple instances of T.
-                                           /// </summary>
-                                           /// <typeparam name="T">The type to create.</typeparam>
-                                           /// <returns>A collection of T elements.</returns>
-                                           /// <exception cref="DatodiaException">An instance of T couldn't be created.</exception>
+                                           /// <inheritdoc />
                                            public IEnumerable<T> CreateMany<T>()
                                            {
                                                for (var i = 0; i < this.RepeatCount; i++) yield return this.Create<T>();
@@ -596,12 +536,14 @@ public sealed class ContainerGeneratorTests
                                        """,
                 """
                 namespace Kwality.Datodia.Builders.Generated;
-
+                
+                using global::Kwality.Datodia.Abstractions;
+                
                 [global::TypeBuilder]
                 public sealed class PersonTypeBuilder : global::Kwality.Datodia.Builders.Abstractions.ITypeBuilder<global::Person>
                 {
                     /// <inheritdoc />
-                    public object Create()
+                    public object Create(IContainer container)
                     {
                         return new global::Person();
                     }
@@ -683,12 +625,14 @@ public sealed class ContainerGeneratorTests
                                        """,
                 """
                 namespace Kwality.Datodia.Builders.Generated;
-
+                
+                using global::Kwality.Datodia.Abstractions;
+                
                 [global::TypeBuilder]
                 public sealed class PersonTypeBuilder : global::Kwality.Datodia.Builders.Abstractions.ITypeBuilder<global::Person>
                 {
                     /// <inheritdoc />
-                    public object Create()
+                    public object Create(IContainer container)
                     {
                         return new global::Person();
                     }
@@ -778,11 +722,13 @@ public sealed class ContainerGeneratorTests
                 """
                 namespace Kwality.Datodia.Builders.Generated.Samples;
 
+                using global::Kwality.Datodia.Abstractions;
+                
                 [global::TypeBuilder]
                 public sealed class PersonTypeBuilder : global::Kwality.Datodia.Builders.Abstractions.ITypeBuilder<global::Samples.Person>
                 {
                     /// <inheritdoc />
-                    public object Create()
+                    public object Create(IContainer container)
                     {
                         return new global::Samples.Person();
                     }
@@ -873,11 +819,13 @@ public sealed class ContainerGeneratorTests
                 """
                 namespace Kwality.Datodia.Builders.Generated.Models;
 
+                using global::Kwality.Datodia.Abstractions;
+                
                 [global::TypeBuilder]
                 public sealed class PersonTypeBuilder : global::Kwality.Datodia.Builders.Abstractions.ITypeBuilder<global::Models.Person>
                 {
                     /// <inheritdoc />
-                    public object Create()
+                    public object Create(IContainer container)
                     {
                         return new global::Models.Person();
                     }
@@ -970,11 +918,13 @@ public sealed class ContainerGeneratorTests
                 """
                 namespace Kwality.Datodia.Builders.Generated.Sample.Models;
 
+                using global::Kwality.Datodia.Abstractions;
+                
                 [global::TypeBuilder]
                 public sealed class PersonTypeBuilder : global::Kwality.Datodia.Builders.Abstractions.ITypeBuilder<global::Sample.Models.Person>
                 {
                     /// <inheritdoc />
-                    public object Create()
+                    public object Create(IContainer container)
                     {
                         return new global::Sample.Models.Person();
                     }
