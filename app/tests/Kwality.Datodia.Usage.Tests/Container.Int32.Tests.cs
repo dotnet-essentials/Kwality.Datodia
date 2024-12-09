@@ -22,21 +22,26 @@
 // ==                FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // ==                OTHER DEALINGS IN THE SOFTWARE.
 // =====================================================================================================================
-namespace Kwality.Datodia.Usage.Tests.Builders;
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member - Reason: NOT Public.
+namespace Kwality.Datodia.Usage.Tests;
 
-using Kwality.Datodia.Abstractions;
-using Kwality.Datodia.Builders.Abstractions;
+using FluentAssertions;
 
-// Summary: This 'ITypeBuilder<T>' instance is used by a single test.
-// Used By: Kwality.Datodia.Usage.Tests.ContainerTests.Create_type_defined_by_custom_builder
-[TypeBuilder]
-internal sealed class FixedSquareTypeBuilder : ITypeBuilder<(int, int)>
+using Xunit;
+
+public sealed partial class ContainerTests
 {
-    public object Create(IContainer container)
+    [Fact(DisplayName = "'Create<T>': When 'T' is an 'Int32' a unique Int32 is returned.")]
+    internal void Create_int_returns_a_unique_guid()
     {
-        var arg1 = container.Create<int>();
-        var arg2 = container.Create<int>();
+        // ARRANGE.
+        var container = new Container();
 
-        return (arg1, arg2);
+        // ACT.
+        var r1 = container.Create<int>();
+        var r2 = container.Create<int>();
+
+        // ASSERT.
+        _ = r1.Should().NotBe(r2);
     }
 }

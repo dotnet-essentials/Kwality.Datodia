@@ -22,21 +22,23 @@
 // ==                FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // ==                OTHER DEALINGS IN THE SOFTWARE.
 // =====================================================================================================================
-namespace Kwality.Datodia.Usage.Tests.Builders;
+#pragma warning disable RS1035 - Reason: We want "true" random numbers.
+#pragma warning disable CA5394 - Reason: Security is not important in this scope.
+namespace Kwality.Datodia.Builders.System;
 
 using Kwality.Datodia.Abstractions;
 using Kwality.Datodia.Builders.Abstractions;
 
-// Summary: This 'ITypeBuilder<T>' instance is used by a single test.
-// Used By: Kwality.Datodia.Usage.Tests.ContainerTests.Create_type_defined_by_custom_builder
-[TypeBuilder]
-internal sealed class FixedSquareTypeBuilder : ITypeBuilder<(int, int)>
+/// <summary>
+///     A builder that's used to create unique 'Int32' instances.
+/// </summary>
+public sealed class Int32TypeBuilder : ITypeBuilder<int>
 {
+    private readonly Random random = new();
+
+    /// <inheritdoc />
     public object Create(IContainer container)
     {
-        var arg1 = container.Create<int>();
-        var arg2 = container.Create<int>();
-
-        return (arg1, arg2);
+        return this.random.Next();
     }
 }

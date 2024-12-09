@@ -51,11 +51,10 @@ public sealed partial class ContainerTests
         var container = new Container();
 
         // ACT.
-        var result = container.Create<(int, int)>();
+        (var arg1, var arg2) = container.Create<(int, int)>();
 
         // ASSERT.
-        _ = result.Should().NotBeNull();
-        _ = result.Should().Be((10, 10));
+        _ = arg1.Should().NotBe(arg2);
     }
 
     [Fact(DisplayName = "'Register<T>': A custom builder is registered for 'T'.")]

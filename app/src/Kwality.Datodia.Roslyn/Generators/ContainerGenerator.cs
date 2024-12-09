@@ -99,6 +99,7 @@ public sealed class ContainerGenerator : IIncrementalGenerator
         new("string", "StringTypeBuilder", systemTypeBuildersNamespace),
         new("System.Guid", "GuidTypeBuilder", systemTypeBuildersNamespace),
         new("bool", "BoolTypeBuilder", systemTypeBuildersNamespace),
+        new("int", "Int32TypeBuilder", systemTypeBuildersNamespace),
     ];
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
