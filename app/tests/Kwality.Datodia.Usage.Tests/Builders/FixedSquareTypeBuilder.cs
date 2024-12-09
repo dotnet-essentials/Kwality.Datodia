@@ -24,6 +24,7 @@
 // =====================================================================================================================
 namespace Kwality.Datodia.Usage.Tests.Builders;
 
+using Kwality.Datodia.Abstractions;
 using Kwality.Datodia.Builders.Abstractions;
 
 // Summary: This 'ITypeBuilder<T>' instance is used by a single test.
@@ -31,7 +32,7 @@ using Kwality.Datodia.Builders.Abstractions;
 [TypeBuilder]
 public sealed class FixedSquareTypeBuilder : ITypeBuilder<(int, int)>
 {
-    public object Create()
+    public object Create(IContainer container)
     {
         return (10, 10);
     }

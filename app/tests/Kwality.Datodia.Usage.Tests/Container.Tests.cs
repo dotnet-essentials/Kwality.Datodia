@@ -65,7 +65,7 @@ public sealed partial class ContainerTests
         var container = new Container();
 
         // ACT.
-        container.Register<string>(() => "Hello, World!");
+        container.Register<string>(_ => "Hello, World!");
 
         // ASSERT.
         _ = container.Create<string>().Should().BeEquivalentTo("Hello, World!");

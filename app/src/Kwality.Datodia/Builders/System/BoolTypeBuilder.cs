@@ -24,6 +24,7 @@
 // =====================================================================================================================
 namespace Kwality.Datodia.Builders.System;
 
+using Kwality.Datodia.Abstractions;
 using Kwality.Datodia.Builders.Abstractions;
 
 /// <summary>
@@ -34,7 +35,7 @@ public sealed class BoolTypeBuilder : ITypeBuilder<bool>
     private bool value;
 
     /// <inheritdoc />
-    public object Create()
+    public object Create(IContainer container)
     {
         this.value = !this.value;
 

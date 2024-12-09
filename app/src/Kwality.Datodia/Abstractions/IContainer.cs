@@ -22,20 +22,28 @@
 // ==                FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // ==                OTHER DEALINGS IN THE SOFTWARE.
 // =====================================================================================================================
-namespace Kwality.Datodia.Builders.Abstractions;
+namespace Kwality.Datodia.Abstractions;
 
-using Kwality.Datodia.Abstractions;
+using Kwality.Datodia.Exceptions;
 
 /// <summary>
-///     Interface for object capable of creating an instance of T.
+///     Interface for the container used to create objects.
 /// </summary>
-/// <typeparam name="T">The type that this builder is able to create.</typeparam>
-public interface ITypeBuilder<out T>
+public interface IContainer
 {
     /// <summary>
     ///     Create an instance of T.
     /// </summary>
-    /// <param name="container">The container which called this builder.</param>
-    /// <returns>An instance of T (but as an 'object').</returns>
-    object Create(IContainer container);
+    /// <typeparam name="T">The type to create.</typeparam>
+    /// <returns>An instance of T.</returns>
+    /// <exception cref="DatodiaException">An instance of T couldn't be created.</exception>
+    T Create<T>();
+
+    /// <summary>
+    ///     Create multiple instances of T.
+    /// </summary>
+    /// <typeparam name="T">The type to create.</typeparam>
+    /// <returns>A collection of T elements.</returns>
+    /// <exception cref="DatodiaException">An instance of T couldn't be created.</exception>    
+    IEnumerable<T> CreateMany<T>();
 }

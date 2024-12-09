@@ -52,12 +52,13 @@ public sealed class ContainerGenerator : IIncrementalGenerator
                                            using System;
                                            using System.Collections.Generic;
 
+                                           using Kwality.Datodia.Abstractions;
                                            using Kwality.Datodia.Exceptions;
 
                                            /// <summary>
                                            ///     Container used to create objects.
                                            /// </summary>
-                                           public sealed class Container
+                                           public sealed class Container : IContainer
                                            {
                                            [[#[[TYPE_BUILDERS_INSTANCES]]#]]
                                            [[#[[TYPE_BUILDERS_MAP]]#]]
@@ -67,25 +68,15 @@ public sealed class ContainerGenerator : IIncrementalGenerator
                                                /// <remarks>Defaults to 3.</remarks>
                                                public int RepeatCount{ get; set; } = 3;
                                            
-                                               /// <summary>
-                                               ///     Create an instance of T.
-                                               /// </summary>
-                                               /// <typeparam name="T">The type to create.</typeparam>
-                                               /// <returns>An instance of T.</returns>
-                                               /// <exception cref="DatodiaException">An instance of T couldn't be created.</exception>
+                                               /// <inheritdoc />
                                                public T Create<T>()
                                                {
-                                                   if (this.typeBuilders.TryGetValue(typeof(T), out var builder)) return (T)builder();
+                                                   if (this.typeBuilders.TryGetValue(typeof(T), out var builder)) return (T)builder(this);
                                            
                                                    throw new DatodiaException($"No resolver registered for type '{typeof(T)}'.");
                                                }
                                            
-                                               /// <summary>
-                                               ///     Create multiple instances of T.
-                                               /// </summary>
-                                               /// <typeparam name="T">The type to create.</typeparam>
-                                               /// <returns>A collection of T elements.</returns>
-                                               /// <exception cref="DatodiaException">An instance of T couldn't be created.</exception>
+                                               /// <inheritdoc />
                                                public IEnumerable<T> CreateMany<T>()
                                                {
                                                    for (var i = 0; i < this.RepeatCount; i++) yield return this.Create<T>();
@@ -96,7 +87,7 @@ public sealed class ContainerGenerator : IIncrementalGenerator
                                                /// </summary>
                                                /// <param name="builder">The builder used to create instances of T.</param>
                                                /// <typeparam name="T">The type the builder can create.</typeparam>
-                                               public void Register<T>(Func<object> builder)
+                                               public void Register<T>(Func<IContainer, object> builder)
                                                {
                                                    this.typeBuilders[typeof(T)] = builder;
                                                }
@@ -145,11 +136,13 @@ public sealed class ContainerGenerator : IIncrementalGenerator
             var typeBuilderSource = $$"""
                                       namespace {{definition.Namespace}};
                                       
+                                      using global::Kwality.Datodia.Abstractions;
+                                      
                                       [global::TypeBuilder]
                                       public sealed class {{definition.BuilderName}} : global::{{typeBuilderInterfaceNamespace}}.{{typeBuilderInterfaceName}}<global::{{definition.FullTypeName}}>
                                       {
                                           /// <inheritdoc />
-                                          public object Create()
+                                          public object Create(IContainer container)
                                           {
                                               return new global::{{definition.FullTypeName}}();
                                           }
@@ -253,7 +246,7 @@ public sealed class ContainerGenerator : IIncrementalGenerator
     private static string CreateTypeBuilderMap(ImmutableArray<TypeBuilderDefinition?> typeBuilderDefinitions)
     {
         var sBuilder = new StringBuilder();
-        _ = sBuilder.AppendLine("    private readonly Dictionary<Type, Func<object>> typeBuilders = new()");
+        _ = sBuilder.AppendLine("    private readonly Dictionary<Type, Func<IContainer, object>> typeBuilders = new()");
         _ = sBuilder.AppendLine("    {");
 
         foreach (var definition in Enumerable.OfType<TypeBuilderDefinition>(typeBuilderDefinitions))

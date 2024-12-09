@@ -24,6 +24,7 @@
 // =====================================================================================================================
 namespace Kwality.Datodia.Builders.System;
 
+using Kwality.Datodia.Abstractions;
 using Kwality.Datodia.Builders.Abstractions;
 
 /// <summary>
@@ -32,7 +33,7 @@ using Kwality.Datodia.Builders.Abstractions;
 public sealed class GuidTypeBuilder : ITypeBuilder<Guid>
 {
     /// <inheritdoc />
-    public object Create()
+    public object Create(IContainer container)
     {
         return Guid.NewGuid();
     }
